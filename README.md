@@ -2,18 +2,23 @@
 
 Flexible Python framework for modular data workflows with structured configurations.
 
-Meandra is a Python library designed to streamline data analysis workflows, integrating configuration management, pipeline orchestration and execution tracking. It offers a lightweight, flexible, and customizable approach to define and run complex data analysis pipelines in a modular way.
+Meandra is a Python library designed to streamline data analysis workflows, integrating
+configuration management, pipeline orchestration and execution tracking. It offers a lightweight,
+flexible, and customizable approach to define and run complex data analysis pipelines in a modular
+way.
 
 ## Features
 
 ### Configuration Management
 
-- **YAML-based Configuration**: Define structured and nested parameters in YAML files, with JSON conversion support.
+- **YAML-based Configuration**: Define structured and nested parameters in YAML files, with JSON
+  conversion support.
 - **Variable Interpolation**: Reference variables within configuration files.
 - **Required Parameters**: Specify mandatory runtime parameters.
 - **Modular Configurations**: Separate concerns with reusable configuration files.
 - **Hierarchical Merging**: Combine multiple configuration sources with customizable precedence.
-- **Runtime Overrides**: Modify parameters via command-line inputs using dot notation, or alternate configuration files.
+- **Runtime Overrides**: Modify parameters via command-line inputs using dot notation, or alternate
+  configuration files.
 - **Centralized Parameter Access**: Use dot notation to access a unified configuration object.
 - **Optional Schema Validation**: Validate parameters with type hints and constraints.
 - **Dynamic Path Rules**: Specify complex input/output paths with runtime placeholders.
@@ -37,7 +42,9 @@ Meandra is a Python library designed to streamline data analysis workflows, inte
 
 ## Motivation
 
-Existing tools for configuration management and workflow automation often impose rigid structures or lack flexibility for scientific workflows. This library is tailored to scientific data analysis challenges, offering:
+Existing tools for configuration management and workflow automation often impose rigid structures or
+lack flexibility for scientific workflows. This library is tailored to scientific data analysis
+challenges, offering:
 - Lightweight project overhead.
 - Highly adaptable configuration and data management.
 - Flexible, task-oriented pipeline design and execution.
@@ -73,7 +80,7 @@ parameters:
 ```
 
 2. Create modular nodes for atomic computations.
-  
+
 3. Build pipelines by specifying task dependencies.
 
 ```python
@@ -110,4 +117,3 @@ For detailed documentation, visit [Documentation Link](#).
 
 ## License
 This project is licensed under the GNU License. See the [LICENSE](LICENSE) file for details.
-
