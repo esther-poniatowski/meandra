@@ -4,11 +4,13 @@
 meandra.datastore
 =================
 
-Manage data access, discovery, structured metadata, and dynamic path resolution for pipeline inputs
-and outputs.
+Centralizes input/output operations and data handling in pipelines.
 
-Manage data discovery, access, and persistence throughout pipeline execution.
-Implement data providers, catalog functionality, and I/O operations for various formats.
+The `datastore` module is responsible for managing interactions with data throughout the pipeline
+lifecycle. It implements mechanisms for dynamic path resolution, resource discovery, loading and
+saving (reading/writing) in multiple formats. It introduces data providers as a unified layer
+between framework components and underlying data sources, coupled with a data catalog system to
+automate data access on request.
 
 
 Modules
