@@ -92,7 +92,9 @@
 		// Spell Checker
 		"cSpell.enabled": true,
 		"cSpell.customDictionaries": {
+			"meandra": {"name": "meandra", "path": "./config/dictionaries/meandra.txt"},
 			"python": {"name": "python", "path": "./config/dictionaries/python.txt"},
+			"tools": {"name": "tools", "path": "./config/dictionaries/tools.txt"},
 		},
 
 		// Documentation

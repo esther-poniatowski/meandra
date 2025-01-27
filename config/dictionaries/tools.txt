@@ -1,0 +1,9 @@
+debugpy
+lextudio
+miniconda
+mypy
+pylance
+pylint
+pylintrc
+rcfile
+rstcheck
