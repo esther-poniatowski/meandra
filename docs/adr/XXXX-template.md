@@ -42,8 +42,6 @@
 **Justification**: [...]
 
 
-## Consequences
-
 ### Positive
 
 - [...]
@@ -52,7 +50,7 @@
 
 - [...]
 
-### Future Implications
+## Future Implications
 
 - [...]
 

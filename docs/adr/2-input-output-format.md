@@ -134,9 +134,7 @@ def execute(self, inputs: NodeInput) -> NodeOutput:
   - It aligns well with the concept of nodes as self-contained entities with well-defined
     interfaces.
 
-## Consequences
-
-### Future Implications
+## Future Implications
 
 - Decide which structure object is the most appropriate. Consider integrating runtime validation
   (e.g., Pydantic) to enforce key presence and types while keeping a dictionary-based approach.

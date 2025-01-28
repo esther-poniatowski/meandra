@@ -70,9 +70,7 @@ The workflow involves multiple components requiring inputs.
   within the nodes.
 
 
-## Consequences
-
-### Future Implications
+## Future Implications
 
 - Nodes should extract parameters in their `execute` method.
 - Nodes can call more specific functions with raw parameters, thereby acting as a lower-level
