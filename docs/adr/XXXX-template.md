@@ -16,21 +16,23 @@
 
 ## Considered Options
 
-- [option 1]
-- [option 2]
+1. **[option 1]**
+2. **[option 2]**
 
 
 ## Analysis of Options
 
-### [option 1]
+1. **[option 1]**
+* Pros:
+  - [List advantages]
+* Cons:
+  - [List disadvantages]
 
-* Pros: [List advantages]
-* Cons: [List disadvantages]
-
-### [option 2]
-
-* Pros: [List advantages]
-* Cons: [List disadvantages]
+2. **[option 2]**
+* Pros:
+  - [List advantages]
+* Cons:
+  - [List disadvantages]
 
 
 ## Decision
