@@ -2,8 +2,8 @@
 
 
 Meandra is a Python library designed to streamline modular data workflows, integrating structured
-configuration management, pipeline orchestration, and execution tracking. It provides a lightweight,
-flexible, and customizable approach to defining and executing complex data processing pipelines.
+configuration management, workflow orchestration, and execution tracking. It provides a lightweight,
+flexible, and customizable approach to defining and executing complex data processing workflows.
 
 
 ## Key Features
@@ -30,13 +30,13 @@ flexible, and customizable approach to defining and executing complex data proce
 - **Flexible Data Catalog**: Automate data loading and saving with with customizable rules.
 
 
-### Pipeline Definition and Execution
+### workflow Definition and Execution
 
 - **Modular Composition**: Define atomic computation units (nodes) that can be shared across
-  pipelines, and composed into sub-pipelines for nested loops and complex workflows.
+  workflows, and composed into sub-workflows for nested loops and complex workflows.
 - **Dependency Resolution**: Automatically schedule tasks based on inter-step dependencies within
-  pipelines.
-- **Custom Entry Points**: Launch pipelines from the command line for dynamic instantiation.
+  workflows.
+- **Custom Entry Points**: Launch workflows from the command line for dynamic instantiation.
 - **Parallel Execution**: Run independent tasks concurrently for improved performance.
 - **Automated Logging**: Customize logging options for comprehensive monitoring and debugging.
 - **Execution Tracking**: Display real-time task progress and status in the terminal.
@@ -54,7 +54,7 @@ lack flexibility for complex, non linear data workflows.
 
 Meandra is designed to address these challenges by providing:
 - Highly adaptable configuration and data management.
-- Modular, task-oriented approach to pipeline definition and execution.
+- Modular, task-oriented approach to workflow definition and execution.
 - Minimal project overhead.
 
 These features make Meandra particularly suitable for scientific data analysis projects.
@@ -62,7 +62,7 @@ These features make Meandra particularly suitable for scientific data analysis p
 ## Installation
 
 ```bash
-pip install scientific-pipeline
+pip install scientific-workflow
 ```
 
 ## Quick Start
@@ -79,17 +79,17 @@ pip install scientific-pipeline
 # TODO: Add examples
 ```
 
-3. Build pipelines by specifying task dependencies.
+3. Build workflows by specifying task dependencies.
 
 
 ```python
 # TODO: Add examples
 ```
 
-4. Execute the pipeline using the custom entry point:
+4. Execute the workflow using the custom entry point:
 
  ```bash
- python run_pipeline.py --pipeline-name my_pipeline
+ python run_workflow.py --workflow-name my_workflow
  ```
 
 ## Documentation

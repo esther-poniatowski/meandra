@@ -4,7 +4,7 @@
 meandra.monitoring
 ==================
 
-Implements monitoring of the pipeline execution throughout its lifecycle.
+Implements monitoring of the workflow execution throughout its lifecycle.
 
 The `monitoring` module is responsible for reporting on task progress, logging runtime events,
 tracking execution state, and checkpointing for resumption and debugging. The monitoring system is

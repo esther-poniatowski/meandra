@@ -4,11 +4,11 @@
 meandra.core
 ============
 
-Defines the core API for constructing and executing data processing pipelines in the Meandra
+Defines the core API for constructing and executing data processing workflows in the Meandra
 framework.
 
-The `core` module provides the foundational base classes for pipeline components: nodes and
-pipelines. These abstractions establish a standardized interface that users must implement when
+The `core` module provides the foundational base classes for workflow components: nodes and
+workflows. These abstractions establish a standardized interface that users must implement when
 specifying custom processing logic.
 
 The design prioritizes:
@@ -20,16 +20,16 @@ The design prioritizes:
 Modules
 -------
 node
-    Defines the Node class for building individual nodes in a pipeline.
-pipeline
-    Defines the Pipeline class for constructing and managing entire pipelines.
+    Defines the Node class for building individual nodes in a workflow.
+workflow
+    Defines the Workflow class for constructing and managing entire workflows.
 
 Usage
 -----
-To create a pipeline:
+To create a workflow:
 
 1. Subclass the Node class to implement custom nodes.
-2. Use the Pipeline class to assemble and manage these nodes.
+2. Use the workflow class to assemble and manage these nodes.
 
 See Also
 --------
