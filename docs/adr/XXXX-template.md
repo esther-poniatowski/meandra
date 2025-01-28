@@ -8,30 +8,22 @@
 
 [Describe the problem / requirement / background]
 
+
 ## Decision Drivers
 
-- [driver 1 ...]
+- [driver 1]
+
 
 ## Considered Options
 
 - [option 1]
 - [option 2]
 
-## Decision
-
-Chosen option: [...]
-
-Justification: [...]
-
-### Consequences
-
-* Positive: [..]
-* Negative: [...]
-* Future Implications: [...]
 
 ## Analysis of Options
 
 ### [option 1]
+
 * Pros: [List advantages]
 * Cons: [List disadvantages]
 
@@ -39,6 +31,29 @@ Justification: [...]
 
 * Pros: [List advantages]
 * Cons: [List disadvantages]
+
+
+## Decision
+
+**Chosen option**: [...]
+
+**Justification**: [...]
+
+
+## Consequences
+
+### Positive
+
+- [...]
+
+### Negative
+
+- [...]
+
+### Future Implications
+
+- [...]
+
 
 ## Related Decisions
 - [ADR-00YY]
