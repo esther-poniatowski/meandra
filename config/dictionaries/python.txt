@@ -1,1 +1,7 @@
 abstractmethod
+dataclass
+docstrings
+elif
+pycache
+pytest
+staticmethod

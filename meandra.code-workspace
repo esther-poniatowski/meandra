@@ -107,8 +107,10 @@
 		"esbonio.sphinx.builderName": "html",
 
 		// Testing
-		"python.testing.pytestEnabled": true,
-		"python.testing.pytestArgs": ["tests"], // path to the directory containing tests
+		"python.testing.pytestEnabled": false, // disable built-in test runner
+		"python.testing.unittestEnabled": false, // disable built-in test runner
+		"pythonTestExplorer.testFramework": "pytest", // use pytest as the test framework
+		"python.testing.pytestArgs": ["tests"], // specify the test directory
 
 	},
 

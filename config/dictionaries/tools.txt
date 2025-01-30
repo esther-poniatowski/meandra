@@ -1,4 +1,5 @@
 debugpy
+esbonio
 lextudio
 miniconda
 mypy
