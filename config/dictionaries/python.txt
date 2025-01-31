@@ -1,7 +1,11 @@
 abstractmethod
+classmethod
 dataclass
 docstrings
 elif
+getattribute
+isinstance
 pycache
+pydantic
 pytest
 staticmethod

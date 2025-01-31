@@ -8,7 +8,12 @@ Proposed
 
 The precise nature of **workflows** needs to be determined.
 
-Workflows are primarily determined by the types of nodes they include and the parameters of those
+1. **What defines a workflow class vs. a workflow instance?**
+  - What differentiates multiple workflow **classes** from each other? Is it even necessary to
+    define multiple workflow classes?
+  - What differentiates multiple **instances** of the same workflow class?
+
+Workflows are primarily characterized by the types of nodes they include and the parameters of those
 nodes (e.g. input-output data). However, distinct workflow types usually have predictable node type
 sequences. Within a given workflow, variations between instances are rather related to the number of
 nodes and the parameters of those nodes.
@@ -17,11 +22,6 @@ Thus, two levels of structure and configuration can be identified:
 - The general structure of a workflow type, which determines the types of nodes to be included.
 - The specific configuration of each workflow instance, which determines the number of nodes and
   their parameters.
-
-1. **What defines a workflow class vs. a workflow instance?**
-  - What differentiates multiple workflow **classes** from each other? Is it even necessary to
-    define multiple workflow classes?
-  - What differentiates multiple **instances** of the same workflow class?
 
 2. **Which component is responsible for creating workflows?**
   - Should workflows **instantiate themselves**, or should a **dedicated creator** class be
