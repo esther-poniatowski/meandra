@@ -2,4 +2,4 @@ checkpointable
 checkpointing
 meandra
 posteriori
-sweepparam
+ParamGrid

@@ -1,11 +1,16 @@
 abstractmethod
 classmethod
 dataclass
+dataclasses
+deepcopy
 docstrings
 elif
 getattribute
+hasattr
 isinstance
 pycache
 pydantic
 pytest
+repr
+setattr
 staticmethod
