@@ -1,12 +1,23 @@
-# meandra
+# Meandra
 
+Meandra is a workflow automation framework that defines and executes modular, scalable, and
+reproducible data pipelines. It integrates hierarchical configuration, task-oriented orchestration,
+execution tracking and I/O management to streamline complex data workflows.
 
-Meandra is a Python library designed to streamline modular data workflows, integrating structured
-configuration management, workflow orchestration, and execution tracking. It provides a lightweight,
-flexible, and customizable approach to defining and executing complex data processing workflows.
+## Motivation
 
+Existing tools for configuration management and workflow automation often impose rigid structures or
+lack flexibility for complex, non linear data workflows.
 
-## Key Features
+Meandra addresses these challenges by providing:
+
+- Modular, task-oriented workflows definition.
+- Flexible configuration and execution management.
+- Automated input loading and output saving with metadata recording.
+
+These features make Meandra particularly suitable for scientific data analysis projects.
+
+## Features
 
 ### Configuration Management
 
@@ -29,7 +40,6 @@ flexible, and customizable approach to defining and executing complex data proce
   file management.
 - **Flexible Data Catalog**: Automate data loading and saving with with customizable rules.
 
-
 ### workflow Definition and Execution
 
 - **Modular Composition**: Define atomic computation units (nodes) that can be shared across
@@ -46,57 +56,53 @@ flexible, and customizable approach to defining and executing complex data proce
   execution from the last successful step or an intermediate checkpoint.
 - **Reproducibility**: Rerun previous experiments with consistent configurations.
 
-
-## Motivation
-
-Existing tools for configuration management and workflow automation often impose rigid structures or
-lack flexibility for complex, non linear data workflows.
-
-Meandra is designed to address these challenges by providing:
-- Highly adaptable configuration and data management.
-- Modular, task-oriented approach to workflow definition and execution.
-- Minimal project overhead.
-
-These features make Meandra particularly suitable for scientific data analysis projects.
-
 ## Installation
 
+Meandra is currently available for installation directly from its GitHub repository.
+
+To install the package and its dependencies in an activated virtual environment:
+
 ```bash
-pip install scientific-workflow
+pip install git+https://github.com/esther-poniatowski/meandra.git
+```
+
+To install a specific version, specify the version tag in the URL:
+
+```bash
+pip install git+https://github.com/esther-poniatowski/meandra.git@v0.1.0
 ```
 
 ## Quick Start
 
 1. Define configurations in `config.yaml`:
 
-```yaml
-# TODO: Add examples
-```
+    ```yaml
+    # TODO: Add examples
+    ```
 
 2. Create modular nodes for atomic computations.
 
-```python
-# TODO: Add examples
-```
+    ```python
+    # TODO: Add examples
+    ```
 
 3. Build workflows by specifying task dependencies.
 
 
-```python
-# TODO: Add examples
-```
+    ```python
+    # TODO: Add examples
+    ```
 
 4. Execute the workflow using the custom entry point:
 
- ```bash
- python run_workflow.py --workflow-name my_workflow
- ```
+    ```bash
+    python run_workflow.py --workflow-name my_workflow
+    ```
 
 ## Documentation
 
 For detailed documentation, visit [Documentation Link](#).
 
-
 ## License
 
-This project is licensed under the GNU License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the [GNU license](LICENSE).
