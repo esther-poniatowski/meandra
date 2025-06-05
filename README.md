@@ -1,108 +1,217 @@
 # Meandra
 
-Meandra is a workflow automation framework that defines and executes modular, scalable, and
-reproducible data pipelines. It integrates hierarchical configuration, task-oriented orchestration,
-execution tracking and I/O management to streamline complex data workflows.
+[![Conda](https://img.shields.io/badge/conda-eresthanaconda--channel-blue)](#installation)
+[![Maintenance](https://img.shields.io/maintenance/yes/2025)]()
+[![Last Commit](https://img.shields.io/github/last-commit/esther-poniatowski/architekta)](https://github.com/esther-poniatowski/architekta/commits/main)
+[![Python](https://img.shields.io/badge/python-supported-blue)](https://www.python.org/)
+[![License: GPL](https://img.shields.io/badge/License-GPL-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
 
-## Motivation
+Workflow manager for building modular processing pipelines with structured configuration and flexible task orchestration.
 
-Existing tools for configuration management and workflow automation often impose rigid structures or
-lack flexibility for complex, non linear data workflows.
+---
 
-Meandra addresses these challenges by providing:
+## Table of Contents
 
-- Modular, task-oriented workflows definition.
-- Flexible configuration and execution management.
-- Automated input loading and output saving with metadata recording.
+- [Overview](#overview)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Documentation](#documentation)
+- [Support](#support)
+- [Contributing](#contributing)
+- [Acknowledgments](#acknowledgments)
+- [License](#license)
 
-These features make Meandra particularly suitable for scientific data analysis projects.
+## Overview
+
+### Motivation
+
+Complex data processing pipelines often require the coordination of heterogeneous tasks, structured
+configurations, and multi-stage computations. These workflows frequently involve conditional
+execution paths, parameter sweeps, custom input/output formats, and intermediate checkpointing.
+
+Existing tools for configuration management and workflow automation either impose rigid and
+monolithic structures, or lack the flexibility to express non-linear or hierarchical workflows with
+fine-grained parameter control. Moreover, managing reproducibility, logging, and runtime variability
+typically requires substantial boilerplate or external tooling.
+
+### Advantages
+
+Meandra introduces a workflow automation framework for defining and executing modular, scalable, and
+reproducible workflows.
+
+It provides the following benefits:
+
+- **Modular workflow composition**: Design reusable and hierarchical pipelines from atomic tasks.
+- **Declarative configuration management**: Control parameters through structured configuration files, runtime overrides, and hierarchical merging.
+- **Flexible input/output resolution**: Automate file handling and path generation with dynamic rules and metadata tracking.
+- **Execution orchestration and monitoring**: Resolve task dependencies, track progress, manage
+  failures and recovery.
+- **Reproducible experimentation**: Rerun experiments with identical configurations, parameter sets,
+  and outputs.
+
+These features make Meandra particularly suited for scientific data analysis and experimental
+simulation research.
+
+---
 
 ## Features
 
 ### Configuration Management
 
-- **YAML-based Configuration**: Define structured and nested parameters in YAML files, with optional
+- [ ] **Modular Configuration**: Define structured and nested parameters in reusable and composable configuration files in YAML format, with optional
   JSON conversion.
-- **Variable Interpolation**: Reference variables within configuration files for dynamic parameter
-  setting.
-- **Required Parameters**: Enforce mandatory runtime parameters to ensure all necessary inputs are
-  provided.
-- **Modular Configurations**: Organize reusable and composable configuration files for improved
-  clarity and maintainability.
-- **Hierarchical Merging**: Combine multiple configuration sources with customizable precedence.
-- **Runtime Overrides**: Modify parameters via command-line inputs using dot notation, or alternate
+- [ ] **Hierarchical Merging**: Combine multiple configuration sources with customizable precedence.
+- [ ] **Runtime Overrides**: Modify parameters via command-line inputs using dot notation, or alternate
   configuration files.
-- **Centralized Parameter Access**: Retrieve parameters from a unified configuration object using
-  dot notation.
-- **Optional Schema Validation**: Optionally validate parameters using type hints and constraints
-  for data integrity.
-- **Dynamic Path Rules**: Specify flexible input/output paths with runtime placeholders for complex
+- [ ] **Variable Interpolation**: Reference variables within configuration files for dynamic parameter
+  setting.
+- [ ] **Dynamic Path Rules**: Specify flexible input/output paths with runtime placeholders for complex
   file management.
-- **Flexible Data Catalog**: Automate data loading and saving with with customizable rules.
 
-### workflow Definition and Execution
+### Workflow Definition and Execution
 
-- **Modular Composition**: Define atomic computation units (nodes) that can be shared across
-  workflows, and composed into sub-workflows for nested loops and complex workflows.
-- **Dependency Resolution**: Automatically schedule tasks based on inter-step dependencies within
-  workflows.
-- **Custom Entry Points**: Launch workflows from the command line for dynamic instantiation.
-- **Parallel Execution**: Run independent tasks concurrently for improved performance.
-- **Automated Logging**: Customize logging options for comprehensive monitoring and debugging.
-- **Execution Tracking**: Display real-time task progress and status in the terminal.
-- **Parameter Sweeping**: Conduct multi-run experiments with complex parameter combinations.
-- **Run-based Outputs**: Automatically generate output directories for different runs.
-- **Failure Handling & Recovery**: Implement robust error management and checkpointing to resume
+- [ ] **Modular Composition**: Define atomic computation units (nodes) that can be reused and
+  combined across multi-level workflows for nested loops and hierarchical pipelines.
+- [ ] **Parameter Sweeping**: Conduct multi-run experiments with complex parameter combinations.
+- [ ] **Data Catalog**: Automate data loading and saving with customizable path rules and format
+  conversion.
+- [ ] **Direct Execution**: Launch workflows with aliases for dynamic instantiation with custom
+  parameter sets.
+- [ ] **Execution Tracking**: Display real-time task progress and status in the terminal.
+- [ ] **Node Dependency Resolution**: Automatically schedule tasks based on inter-step dependencies
+  within workflows.
+- [ ] **Parallel Execution**: Run independent tasks concurrently for improved performance.
+- [ ] **Automated Logging**: Select logging options for comprehensive monitoring and debugging.
+- [ ] **Run-based Outputs**: Automatically generate output directories for distinct runs.
+- [ ] **Failure Handling & Recovery**: Implement robust error management and checkpointing to resume
   execution from the last successful step or an intermediate checkpoint.
-- **Reproducibility**: Rerun previous experiments with consistent configurations.
+- [ ] **Reproducibility**: Rerun previous experiments with consistent configurations.
+
+---
 
 ## Installation
 
-Meandra is currently available for installation directly from its GitHub repository.
+To install the package and its dependencies, use one of the following methods:
 
-To install the package and its dependencies in an activated virtual environment:
+### Using Pip Installs Packages
+
+Install the package from the GitHub repository URL via `pip`:
 
 ```bash
 pip install git+https://github.com/esther-poniatowski/meandra.git
 ```
 
-To install a specific version, specify the version tag in the URL:
+### Using Conda
+
+Install the package from the private channel eresthanaconda:
 
 ```bash
-pip install git+https://github.com/esther-poniatowski/meandra.git@v0.1.0
+conda install meandra -c eresthanaconda
 ```
 
-## Quick Start
+### From Source
 
-1. Define configurations in `config.yaml`:
+1. Clone the repository:
 
-    ```yaml
-    # TODO: Add examples
-    ```
+      ```bash
+      git clone https://github.com/esther-poniatowski/meandra.git
+      ```
 
-2. Create modular nodes for atomic computations.
+2. Create a dedicated virtual environment:
 
-    ```python
-    # TODO: Add examples
-    ```
+      ```bash
+      cd meandra
+      conda env create -f environment.yml
+      ```
 
-3. Build workflows by specifying task dependencies.
+---
 
+## Usage
 
-    ```python
-    # TODO: Add examples
-    ```
+### Command Line Interface (CLI)
 
-4. Execute the workflow using the custom entry point:
+To display the list of available commands and options:
 
-    ```bash
-    python run_workflow.py --workflow-name my_workflow
-    ```
+```sh
+meandra --help
+```
+
+### Programmatic Usage
+
+To use the package programmatically in Python:
+
+```python
+import meandra
+```
+
+---
+
+## Configuration
+
+### Environment Variables
+
+|Variable|Description|Default|Required|
+|---|---|---|---|
+|`VAR_1`|Description 1|None|Yes|
+|`VAR_2`|Description 2|`false`|No|
+
+### Configuration File
+
+Configuration options are specified in YAML files located in the `config/` directory.
+
+The canonical configuration schema is provided in [`config/default.yaml`](config/default.yaml).
+
+```yaml
+var_1: value1
+var_2: value2
+```
+
+---
 
 ## Documentation
 
-For detailed documentation, visit [Documentation Link](#).
+- [User Guide](https://esther-poniatowski.github.io/meandra/guide/)
+- [API Documentation](https://esther-poniatowski.github.io/meandra/api/)
+
+> [!NOTE]
+> Documentation can also be browsed locally from the [`docs/`](docs/) directory.
+
+## Support
+
+**Issues**: [GitHub Issues](https://github.com/esther-poniatowski/meandra/issues)
+
+**Email**: `{{ contact@example.com }}`
+
+---
+
+## Contributing
+
+Please refer to the [contribution guidelines](CONTRIBUTING.md).
+
+---
+
+## Acknowledgments
+
+### Authors & Contributors
+
+**Author**: @esther-poniatowski
+
+**Contact**: `{{ contact@example.com }}`
+
+For academic use, please cite using the GitHub "Cite this repository" feature to
+generate a citation in various formats.
+
+Alternatively, refer to the [citation metadata](CITATION.cff).
+
+### Third-Party Dependencies
+
+- **[Library A](link)** - Purpose
+- **[Library B](link)** - Purpose
+
+---
 
 ## License
 
-This project is licensed under the [GNU license](LICENSE).
+This project is licensed under the terms of the [GNU General Public License v3.0](LICENSE).
