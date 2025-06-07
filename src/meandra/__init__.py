@@ -14,3 +14,6 @@ See Also
 test_meandra
     Tests for the entire package.
 """
+from importlib.metadata import version
+
+__version__ = version(__package__)
