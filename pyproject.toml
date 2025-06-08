@@ -51,4 +51,4 @@ where = ["src"]
 # --- CLI Entry Points -----------------------------------------------------------------------------
 
 [project.scripts]
-meandra = "meandra.cli:main"
+meandra = "meandra.cli:app"
