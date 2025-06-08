@@ -1,16 +1,16 @@
 """
-Command-line entry point for the `meandra` package.
+Entry point for the `meandra` package, invoked as a module.
 
 Usage
 -----
-To invoke the package::
+To launch the command-line interface, execute::
 
     python -m meandra
 
 
 See Also
 --------
-meandra.cli: Command-line interface module for the package.
+meandra.cli: Module implementing the application's command-line interface.
 """
 from .cli import app
 
