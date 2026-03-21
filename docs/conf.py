@@ -23,7 +23,21 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
+    "myst_parser",
 ]
+
+# -- MyST settings -----------------------------------------------------------
+
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "fieldlist",
+]
+
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "markdown",
+}
 
 autosummary_generate = True
 

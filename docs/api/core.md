@@ -1,31 +1,30 @@
-Core Module
-===========
+# Core Module
 
 The core module contains fundamental data structures for workflows.
 
+## Node
 
-Node
-----
-
+```{eval-rst}
 .. automodule:: meandra.core.node
    :members:
    :undoc-members:
    :show-inheritance:
+```
 
+## Workflow
 
-Workflow
---------
-
+```{eval-rst}
 .. automodule:: meandra.core.workflow
    :members:
    :undoc-members:
    :show-inheritance:
+```
 
+## Errors
 
-Errors
-------
-
+```{eval-rst}
 .. automodule:: meandra.core.errors
    :members:
    :undoc-members:
    :show-inheritance:
+```
