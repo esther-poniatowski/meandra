@@ -26,9 +26,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev,docs]"
 
-      - name: Run linter (ruff)
+      - name: Run formatter check (black)
         run: |
-          ruff check src/
+          black --check --config config/tools/black.toml src/ tests/
+
+      - name: Run linter (pylint)
+        run: |
+          pylint --rcfile=config/tools/pylintrc.ini src/meandra/
 
       - name: Run type checker (mypy)
         run: |
