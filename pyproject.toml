@@ -18,8 +18,8 @@ authors = [{name = "Esther Poniatowski", email = "esther.poniatowski@ens.psl.eu"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 readme = {file = "README.md", content-type = "text/markdown"}
-description = "Project manager for standardizing and automating Python development workflows"
-keywords = ["workflow-automation", "pipeline-orchestration", "configuration-manager", "modular-design"]
+description = "Workflow orchestration library for modular data analysis pipelines"
+keywords = ["workflow-orchestration", "pipeline-orchestration", "data-pipelines", "modular-design"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
@@ -37,6 +37,24 @@ dependencies = [
     "pyyaml",            # YAML configuration parsing
     "typer",             # CLI interface
     "rich",              # Improved CLI output formatting
+    "numpy>=1.24",       # Array operations for handlers
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "mypy",
+    "ruff",
+    "types-PyYAML",
+    "sphinx",
+]
+docs = [
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+hdf5 = [
+    "h5py>=3.0",         # HDF5 file support
 ]
 
 
@@ -51,4 +69,39 @@ where = ["src"]
 # --- CLI Entry Points -----------------------------------------------------------------------------
 
 [project.scripts]
-meandra = "meandra.cli:app"
+meandra = "meandra.cli_app:app"
+
+
+# --- Tool Configuration --------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4"]
+ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["src/meandra"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
