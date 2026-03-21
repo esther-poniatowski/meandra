@@ -1,45 +1,174 @@
 """
-Initialization logic and public interface for the `meandra` package.
+Meandra: Workflow orchestration for data pipelines.
 
-Variables
----------
-__version__ : str, default "0.0.0+unknown"
-    Version of the package. If the package metadata is unavailable (e.g. in editable or source-only
-    environments), a fallback value is provided (PEP 440 compliant).
-__all__ : list
-    Public objects exposed by this package.
+This package provides tools for building and executing data processing pipelines:
 
-Functions
----------
-info() -> str
-    Format diagnostic information about the package and platform.
+- **Core**: Node and Workflow definitions for pipeline structure
+- **Scheduling**: DAG-based dependency resolution
+- **Orchestration**: Workflow execution with state tracking
+- **Datastore**: I/O handlers and data catalog for multiple file formats
+- **Checkpoint**: Workflow state persistence and resumption
+- **Monitoring**: Execution state tracking and logging
 
-Examples
---------
-To programmatically retrieve the package version:
-
-    >>> import meandra
-    >>> meandra.__version__
-    '0.1.0'
-
-See Also
---------
-importlib.metadata.version
-    Function to retrieve the version of a package.
-PackageNotFoundError
-    Exception raised when the package is not found in the environment.
+Example
+-------
+>>> from meandra import Node, Workflow, SchedulingOrchestrator
+>>>
+>>> def load_data(inputs):
+...     return {"data": [1, 2, 3]}
+>>>
+>>> def process(inputs):
+...     return {"result": sum(inputs["data"])}
+>>>
+>>> wf = Workflow("example")
+>>> wf.add_node(Node("loader", load_data, outputs=["data"]))
+>>> wf.add_node(Node("processor", process, dependencies=["loader"], inputs=["data"], outputs=["result"]))
+>>>
+>>> orchestrator = SchedulingOrchestrator()
+>>> results = orchestrator.run(wf, {})
+>>> results["result"]
+6
 """
+
 from importlib.metadata import version, PackageNotFoundError
 import platform
 
 try:
-    if __package__ is None: # erroneous script execution
+    if __package__ is None:
         raise PackageNotFoundError
     __version__ = version(__package__)
 except PackageNotFoundError:
     __version__ = "0.0.0+unknown"
 
-__all__ = ["info", "__version__"]
+# Core
+from meandra.core.node import Node
+from meandra.core.workflow import (
+    Workflow,
+    WorkflowModel,
+    ValidationResult,
+    WorkflowValidationError,
+)
+
+# Scheduling
+from meandra.scheduling.scheduler import (
+    Scheduler,
+    DAGScheduler,
+    CyclicDependencyError,
+)
+
+# Orchestration
+from meandra.orchestration.orchestrator import (
+    Orchestrator,
+    SchedulingOrchestrator,
+    WorkflowExecutionError,
+    HookEvent,
+)
+
+# Monitoring
+from meandra.monitoring.state_tracker import (
+    StateTracker,
+    InMemoryStateTracker,
+    FileStateTracker,
+    NodeState,
+    NodeExecution,
+)
+
+# Datastore
+from meandra.datastore.io_handlers import (
+    IOHandler,
+    PickleHandler,
+    NumpyHandler,
+    JSONHandler,
+    YAMLHandler,
+    HandlerRegistry,
+    get_handler,
+    register_default_handlers,
+    read_file,
+    write_file,
+)
+from meandra.datastore.catalog import (
+    DataCatalog,
+    DatasetEntry,
+)
+
+# Checkpoint
+from meandra.checkpoint.manager import (
+    CheckpointManager,
+    Checkpoint,
+    CheckpointInfo,
+)
+from meandra.checkpoint.storage import (
+    CheckpointStorage,
+    FileSystemStorage,
+)
+from meandra.api import pipe, step, StepBuilder, PipelineBuilder
+from meandra.configuration.mod import ConfigProvider
+
+# Integration (optional - may require tessara/morpha)
+try:
+    from meandra.integration.tessara import TessaraNodeAdapter, SweepOrchestrator
+    from meandra.integration.data import DataStructureIOHandler, create_typed_node
+    _INTEGRATION_AVAILABLE = True
+except ImportError:
+    _INTEGRATION_AVAILABLE = False
+
+__all__ = [
+    # Version
+    "__version__",
+    "info",
+    # Core
+    "Node",
+    "Workflow",
+    "WorkflowModel",
+    "ValidationResult",
+    "WorkflowValidationError",
+    # Scheduling
+    "Scheduler",
+    "DAGScheduler",
+    "CyclicDependencyError",
+    # Orchestration
+    "Orchestrator",
+    "SchedulingOrchestrator",
+    "WorkflowExecutionError",
+    "HookEvent",
+    # Monitoring
+    "StateTracker",
+    "InMemoryStateTracker",
+    "FileStateTracker",
+    "NodeState",
+    "NodeExecution",
+    # Datastore
+    "IOHandler",
+    "PickleHandler",
+    "NumpyHandler",
+    "JSONHandler",
+    "YAMLHandler",
+    "HandlerRegistry",
+    "get_handler",
+    "register_default_handlers",
+    "read_file",
+    "write_file",
+    "DataCatalog",
+    "DatasetEntry",
+    # Checkpoint
+    "CheckpointManager",
+    "Checkpoint",
+    "CheckpointInfo",
+    "CheckpointStorage",
+    "FileSystemStorage",
+    # API
+    "pipe",
+    "step",
+    "StepBuilder",
+    "PipelineBuilder",
+    # Configuration
+    "ConfigProvider",
+    # Integration (optional)
+    "TessaraNodeAdapter",
+    "SweepOrchestrator",
+    "DataStructureIOHandler",
+    "create_typed_node",
+]
 
 
 def info() -> str:

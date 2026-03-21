@@ -11,9 +11,8 @@ with the Meandra framework.
 Modules
 -------
 
-
-See Also
---------
-test_configuration
-    Tests for the configuration module.
 """
+
+from meandra.configuration.mod import ConfigProvider
+
+__all__ = ["ConfigProvider"]

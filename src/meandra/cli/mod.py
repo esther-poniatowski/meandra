@@ -1,7 +1,6 @@
 """
-meandra.
-=====================
+meandra.cli
+===========
 
+Placeholder module for CLI helpers.
 """
-
-from abc import ABC, abstractmethod

@@ -2,96 +2,96 @@
 meandra.core.node
 =================
 
+Processing nodes for workflow execution.
 """
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Callable
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Callable, Optional
 
-class Node(ABC):
-    """Abstract base class for a processing node in the workflow."""
 
-    @abstractmethod
+@dataclass
+class Node:
+    """
+    Define a processing node in the workflow.
+
+    A node represents a single computation step with explicit inputs,
+    outputs, and dependencies on other nodes.
+
+    Attributes
+    ----------
+    name : str
+        Unique identifier for the node within a workflow.
+    func : Callable[[Dict[str, Any]], Any]
+        Function to execute. Takes a dict of inputs and returns outputs.
+    dependencies : List[str]
+        Names of nodes this node depends on (outputs needed as inputs).
+    inputs : List[str]
+        Names of input keys expected from dependencies or workflow inputs.
+    outputs : List[str]
+        Names of output keys produced by this node.
+    is_checkpointable : bool
+        Whether node outputs should be checkpointed.
+    accepts_context : bool
+        If True, the node receives the full context when inputs are not specified.
+    input_contract : Optional[Callable[[Dict[str, Any]], None]]
+        Optional validator for node inputs.
+    output_contract : Optional[Callable[[Dict[str, Any]], None]]
+        Optional validator for node outputs.
+
+    Examples
+    --------
+    >>> def add(inputs):
+    ...     return {"sum": inputs["a"] + inputs["b"]}
+    >>> node = Node("adder", add, inputs=["a", "b"], outputs=["sum"])
+    >>> result = node.execute({"a": 1, "b": 2})
+    >>> result
+    {'sum': 3}
+    """
+
+    name: str
+    func: Callable[[Dict[str, Any]], Any]
+    dependencies: List[str] = field(default_factory=list)
+    inputs: List[str] = field(default_factory=list)
+    outputs: List[str] = field(default_factory=list)
+    is_checkpointable: bool = False
+    accepts_context: bool = False
+    input_contract: Optional[Callable[[Dict[str, Any]], None]] = None
+    output_contract: Optional[Callable[[Dict[str, Any]], None]] = None
+
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Execute the node's logic.
+        Execute the node function with the provided inputs.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         inputs : Dict[str, Any]
             Input data for the node.
 
         Returns
         -------
-        outputs : Dict[str, Any]
+        Dict[str, Any]
             Output data from the node.
         """
-        pass
+        if self.input_contract is not None:
+            self.input_contract(inputs)
+        result = self.func(inputs)
+        # Ensure result is a dict
+        if not isinstance(result, dict):
+            # If function returns a single value, wrap it
+            if len(self.outputs) == 1:
+                result = {self.outputs[0]: result}
+            else:
+                raise ValueError(
+                    f"Node '{self.name}' must return a dict, got {type(result)}"
+                )
+        if self.output_contract is not None:
+            self.output_contract(result)
+        return result
 
-from abc import ABC, abstractmethod
+    def __hash__(self) -> int:
+        return hash(self.name)
 
-
-# FIXME: Mock implementation for Node
-class MockNode(Node):
-    def execute(self, inputs):
-        print(f"Executing node with inputs: {inputs}")
-        return f"processed_{inputs}"
-
-
-# --------
-class Node:
-    """
-    Define a processing node in the workflow.
-
-    TODO: Should dependencies be specified at the level of the nodes or the workflow ?
-    TODO: Set a default name based on the name of the function.
-    TODO: Implement a default approach to pass parameters to the node function automatically, i.e by
-    extracting them from a ParameterSet object based on the name of the function arguments. This
-    behavior could be overridden at the moment of node definition in order to specify a different
-    name to look for in the ParameterSet. This is important in case two nodes call the same function
-    but require different parameters, or if two nodes execute different functions which have the
-    same argument names.
-    TODO: Distinguish between configuration parameters (pre-defined values) and runtime inputs
-    (often loaded or passed across nodes, large datasets).
-    TODO: Consider creating a separate class to specify the inputs and the outputs.
-    TODO: Determine how the inputs and outputs will interact with the data catalog.
-    TODO: Add support to define nodes with other callables than standalone functions: for a method
-    of a class instance (already instantiated) or a method of a class which is not instantiated yet.
-    The latter extension will require to also determine how a class instance will be instantiated
-    based on the parameters provided in the workflow configuration.
-
-    Attributes
-    ----------
-    name : str
-        Node name.
-    func : Callable[[Dict[str, Any]], Any]
-        Function to execute.
-    dependencies : List[Node]
-        List of dependencies.
-    is_checkpointable : bool
-        Flag to indicate if the node is checkpointable.
-    result : Any
-        Computation result.
-
-    Methods
-    -------
-    execute(inputs: Dict[str, Any]) -> Any
-        Execute the node function with the provided inputs.
-    """
-
-    def __init__(
-        self,
-        name: str,
-        func: Callable[[Dict[str, Any]], Any],
-        dependencies: List["Node"] = None,
-        is_checkpointable: bool = False
-    ):
-        self.name = name
-        self.func = func
-        self.dependencies = dependencies or []
-        self.is_checkpointable = is_checkpointable
-        self.result = None  # Stores computation result
-
-    def execute(self, inputs: Dict[str, Any]):
-        """Execute the node function with the provided inputs."""
-        self.result = self.func(inputs)
-        return self.result
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Node):
+            return NotImplemented
+        return self.name == other.name

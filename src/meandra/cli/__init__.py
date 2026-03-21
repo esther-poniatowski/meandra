@@ -7,13 +7,8 @@ parameters.
 
 The `cli` module implements the command-line entry points and sub-commands which serve as the
 primary interface for dynamic instantiation and configuration of workflows.
-
-Modules
--------
-
-
-See Also
---------
-test_cli
-    Tests for the cli module.
 """
+
+from meandra.cli_app import app
+
+__all__ = ["app"]

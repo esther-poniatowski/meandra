@@ -2,21 +2,47 @@
 meandra.datastore
 =================
 
-Centralizes input/output operations and data handling in workflows.
+Data I/O and catalog management.
 
-The `datastore` module is responsible for managing interactions with data throughout the workflow
-lifecycle. It implements mechanisms for dynamic path resolution, resource discovery, loading and
-saving (reading/writing) in multiple formats. It introduces data providers as a unified layer
-between framework components and underlying data sources, coupled with a data catalog system to
-automate data access on request.
-
-
-Modules
--------
-
-
-See Also
---------
-test_datastore
-    Tests for the datastore module.
+This module provides:
+- IOHandlers for reading/writing various file formats
+- DataCatalog for named dataset management with path templating
 """
+
+from meandra.datastore.io_handlers import (
+    IOHandler,
+    PickleHandler,
+    NumpyHandler,
+    JSONHandler,
+    YAMLHandler,
+    HandlerRegistry,
+    HANDLERS,
+    register_handler,
+    register_default_handlers,
+    get_handler,
+    read_file,
+    write_file,
+)
+from meandra.datastore.catalog import (
+    DataCatalog,
+    DatasetEntry,
+)
+
+__all__ = [
+    # IO Handlers
+    "IOHandler",
+    "PickleHandler",
+    "NumpyHandler",
+    "JSONHandler",
+    "YAMLHandler",
+    "HandlerRegistry",
+    "HANDLERS",
+    "register_handler",
+    "register_default_handlers",
+    "get_handler",
+    "read_file",
+    "write_file",
+    # Catalog
+    "DataCatalog",
+    "DatasetEntry",
+]

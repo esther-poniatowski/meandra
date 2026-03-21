@@ -8,12 +8,28 @@ The `orchestration` module implements the central execution engine, which integr
 high-level control of the overall process and the low-level execution of individual components.
 
 
-Modules
--------
-
-
-See Also
---------
-test_orchestration
-    Tests for the orchestration module.
+Public API
+----------
+SchedulingOrchestrator
+    Default orchestrator for executing workflows.
+WorkflowExecutionError
+    Error raised for node execution failures.
+HookEvent
+    Lifecycle hook events.
+Orchestrator
+    Base orchestrator interface.
 """
+
+from meandra.orchestration.orchestrator import (
+    Orchestrator,
+    SchedulingOrchestrator,
+    WorkflowExecutionError,
+    HookEvent,
+)
+
+__all__ = [
+    "Orchestrator",
+    "SchedulingOrchestrator",
+    "WorkflowExecutionError",
+    "HookEvent",
+]

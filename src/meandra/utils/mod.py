@@ -1,7 +1,6 @@
 """
-meandra.
-=====================
+meandra.utils
+=============
 
+Placeholder module for utility helpers.
 """
-
-from abc import ABC, abstractmethod

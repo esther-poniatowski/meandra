@@ -1,37 +1,9 @@
 """
-Command-line interface for the `meandra` package.
+Deprecated module.
 
-Defines commands available via `python -m meandra` or `meandra` if installed as a script.
-
-Commands
---------
-info : Display diagnostic information.
-
-See Also
---------
-typer.Typer
-    Library for building CLI applications: https://typer.tiangolo.com/
+Use `meandra.cli_app` for the CLI entry point.
 """
 
-import typer
-from . import info, __version__
+from meandra.cli_app import app
 
-app = typer.Typer(add_completion=False, no_args_is_help=True)
-
-
-@app.command("info")
-def cli_info() -> None:
-    """Display version and platform diagnostics."""
-    typer.echo(info())
-
-
-@app.callback()
-def main_callback(
-    version: bool = typer.Option(
-        False, "--version", "-v", help="Show the package version and exit."
-    )
-) -> None:
-    """Root command for the package command-line interface."""
-    if version:
-        typer.echo(__version__)
-        raise typer.Exit()
+__all__ = ["app"]

@@ -21,6 +21,8 @@ node
     Defines the Node class for building individual nodes in a workflow.
 workflow
     Defines the Workflow class for constructing and managing entire workflows.
+errors
+    Defines the exception hierarchy for Meandra errors.
 
 Usage
 -----

@@ -12,6 +12,6 @@ See Also
 --------
 meandra.cli: Module implementing the application's command-line interface.
 """
-from .cli import app
+from .cli_app import app
 
 app()
