@@ -45,13 +45,15 @@ dev = [
     "pytest>=7.0",
     "pytest-cov",
     "mypy",
-    "ruff",
+    "black",
+    "pylint",
     "types-PyYAML",
     "sphinx",
 ]
 docs = [
     "sphinx",
     "sphinx-rtd-theme",
+    "myst-parser",
 ]
 hdf5 = [
     "h5py>=3.0",         # HDF5 file support
@@ -81,27 +83,3 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
 
-[tool.mypy]
-python_version = "3.12"
-warn_return_any = true
-warn_unused_configs = true
-ignore_missing_imports = true
-
-[tool.ruff]
-target-version = "py312"
-line-length = 100
-
-[tool.ruff.lint]
-select = ["E", "F", "W", "I", "UP", "B", "C4"]
-ignore = ["E501"]
-
-[tool.coverage.run]
-source = ["src/meandra"]
-branch = true
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError",
-]

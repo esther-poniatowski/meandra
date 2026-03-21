@@ -82,7 +82,7 @@
   "black-formatter.args": ["--config", "${workspaceFolder}/config/tools/black.toml"],
 
   // --- Linting -----------------------------------------------------------------------------------
-  "pylint.args": ["--rcfile=${workspaceFolder}/configtools/pylintrc.ini"],
+  "pylint.args": ["--rcfile=${workspaceFolder}/config/tools/pylintrc.ini"],
 
   // --- Static Type Checking ----------------------------------------------------------------------
   "mypy-type-checker.args": ["--config-file=${workspaceFolder}/config/tools/mypy.ini"],
