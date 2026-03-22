@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 # -- Project information -----------------------------------------------------
 
 project = "Meandra"
-copyright = "2024, Esther Poniatowski"
+copyright = "2025, Esther Poniatowski"
 author = "Esther Poniatowski"
 release = "0.0.0"
 
@@ -26,23 +26,24 @@ extensions = [
     "myst_parser",
 ]
 
-# -- MyST settings -----------------------------------------------------------
+autosummary_generate = True
 
-myst_enable_extensions = [
-    "colon_fence",
-    "deflist",
-    "fieldlist",
-]
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 source_suffix = {
     ".rst": "restructuredtext",
     ".md": "markdown",
 }
 
-autosummary_generate = True
+# -- MyST settings -----------------------------------------------------------
 
-templates_path = ["_templates"]
-exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+myst_enable_extensions = [
+    "colon_fence",
+    "deflist",
+    "fieldlist",
+    "tasklist",
+]
 
 # -- Options for HTML output -------------------------------------------------
 
