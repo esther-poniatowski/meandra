@@ -1,7 +1,7 @@
 # Meandra
 
 [![Conda](https://img.shields.io/badge/conda-eresthanaconda--channel-blue)](#installation)
-[![Maintenance](https://img.shields.io/maintenance/yes/2025)]()
+[![Maintenance](https://img.shields.io/maintenance/yes/2026)]()
 [![Last Commit](https://img.shields.io/github/last-commit/esther-poniatowski/meandra)](https://github.com/esther-poniatowski/meandra/commits/main)
 [![Python](https://img.shields.io/badge/python-supported-blue)](https://www.python.org/)
 [![License: GPL](https://img.shields.io/badge/License-GPL-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
@@ -132,18 +132,53 @@ conda install meandra -c eresthanaconda
 
 ### Command Line Interface (CLI)
 
-To display the list of available commands and options:
+Run a pipeline defined in a Python module:
 
 ```sh
-meandra --help
+meandra run my_module:MyPipeline --config config.yaml
+```
+
+Override parameters at runtime:
+
+```sh
+meandra run my_module:MyPipeline -p learning_rate=0.01 -p epochs=50
+```
+
+Validate a configuration file against a pipeline:
+
+```sh
+meandra validate config.yaml --pipeline my_module:MyPipeline
+```
+
+Export the workflow graph as an image:
+
+```sh
+meandra graph my_module:MyPipeline --output workflow.png
 ```
 
 ### Programmatic Usage
 
-To use the package programmatically in Python:
+Define a pipeline with decorators:
 
 ```python
-import meandra
+from meandra.api.decorators import pipeline, node
+from meandra.orchestration.orchestrator import SchedulingOrchestrator
+from meandra.api.build import build_workflow
+
+@pipeline(name="data_processing")
+class DataPipeline:
+    @node(outputs=["raw_data"])
+    def load(self, inputs):
+        return {"raw_data": load_from_disk()}
+
+    @node(inputs=["raw_data"], outputs=["result"], depends_on=["load"])
+    def process(self, inputs):
+        return {"result": transform(inputs["raw_data"])}
+
+# Build and run the workflow
+workflow = build_workflow(DataPipeline, validate=True)
+orchestrator = SchedulingOrchestrator()
+results = orchestrator.run(workflow, {})
 ```
 
 ---

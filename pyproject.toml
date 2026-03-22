@@ -58,6 +58,16 @@ docs = [
 hdf5 = [
     "h5py>=3.0",         # HDF5 file support
 ]
+morpha = [
+    "morpha",            # DataStructure I/O integration
+]
+tessara = [
+    "tessara",           # Parameter sweep integration
+]
+integration = [
+    "morpha",            # DataStructure I/O integration
+    "tessara",           # Parameter sweep integration
+]
 
 
 # --- Package Source Code --------------------------------------------------------------------------
