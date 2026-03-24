@@ -6,7 +6,7 @@ These tutorials walk through common use cases for Meandra.
 
 This tutorial builds a complete data processing pipeline.
 
-**Step 1: Define your data transformations**
+**Step 1: Define data transformations**
 
 ```python
 import numpy as np

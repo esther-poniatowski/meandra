@@ -16,7 +16,7 @@ cd meandra
 pip install -e ".[dev]"
 ```
 
-## Your First Pipeline
+## First Pipeline
 
 1. **Define nodes** using the `@node` decorator:
 

@@ -6,7 +6,7 @@ Proposed
 
 ## Context and Problem Statement
 
-The precise nature of **workflows** needs to be determined.
+The structure and behavior of **workflows** need to be determined.
 
 1. **What defines a workflow class vs. a workflow instance?**
   - What differentiates multiple workflow **classes** from each other? Is it even necessary to
@@ -23,20 +23,20 @@ Thus, two levels of structure and configuration can be identified:
 - The specific configuration of each workflow instance, which determines the number of nodes and
   their parameters.
 
-2. **Which component is responsible for creating workflows?**
+2. **Which component should create workflows?**
   - Should workflows **instantiate themselves**, or should a **dedicated creator** class be
     responsible for creation?
   - Specifically, the identity of the nodes in a workflow is determined at runtime based on
-    configuration. It involves generating nodes with many parameters and adding them to the
-    workflow. What is the best approach to handle this complex creation process?
+    configuration. This process involves generating nodes with many parameters and adding them to
+    the workflow. What is the best approach to handle this complex creation process?
 
 
 ## Decision Drivers
 
 - **Configurability**: Support defining multiple workflow types while allowing dynamic
   instance-specific configuration, especially for the nodes it contains.
-- **Reusability**: Uniformize workflow creation, without tight coupling to specific instantiation
-  logic.
+- **Reusability**: Uniformize how workflows are created, without tight coupling to specific
+  instantiation logic.
 - **Extensibility**: If necessary in the future, support different workflow creation strategies
   without introducing rigid constraints.
 - **Clarity**: Clear process to define workflows without too much complexity or indirection, and
@@ -375,7 +375,7 @@ workflow_B = director.construct_workflow(config_B)
 * Cons:
   - Limited Flexibility: Harder to customize once created.
   - Complexity: Can lead to large, monolithic constructors if workflows have complex dependencies.
-  - Breaks the Single Responsibility Principle: workflows are responsible for their own creation.
+  - Breaks the Single Responsibility Principle: workflows handle their own creation.
 
 2. **Workflow Self-Configuration with Setter Methods**
 * Pros:
@@ -482,5 +482,5 @@ managing complex workflow configurations.
   clear interfaces for adding new workflow types without modifying existing factory code.
 - Develop a **standardized configuration format** for different workflows.
 - Potential need for a registry or plugin system: If workflows expand significantly, a **registry**
-  (mapping workflow names to classes) might be needed. It would allow dynamic discovery and loading of
-  **new workflow types** at runtime.
+  (mapping workflow names to classes) might be needed. Such a registry would allow dynamic discovery
+  and loading of **new workflow types** at runtime.

@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-supported-blue)](https://www.python.org/)
 [![License: GPL](https://img.shields.io/badge/License-GPL-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
 
-Workflow manager for building modular processing pipelines with structured configuration and flexible task orchestration.
+Workflow manager for modular, reproducible processing pipelines.
 
 ---
 
@@ -27,32 +27,27 @@ Workflow manager for building modular processing pipelines with structured confi
 
 ### Motivation
 
-Complex data processing pipelines often require the coordination of heterogeneous tasks, structured
-configurations, and multi-stage computations. These workflows frequently involve conditional
-execution paths, parameter sweeps, custom input/output formats, and intermediate checkpointing.
+Complex data processing pipelines coordinate heterogeneous tasks across multi-stage computations,
+often involving conditional branches, parameter sweeps, and intermediate checkpoints.
 
-Existing tools for configuration management and workflow automation either impose rigid and
-monolithic structures, or lack the flexibility to express non-linear or hierarchical workflows with
-fine-grained parameter control. Moreover, managing reproducibility, logging, and runtime variability
-typically requires substantial boilerplate or external tooling.
+Existing workflow tools either impose rigid structures or lack flexibility for non-linear,
+hierarchical workflows with precise parameter control. Reproducing results, logging runs,
+and adapting to runtime changes typically require substantial boilerplate.
 
 ### Advantages
 
-Meandra introduces a workflow automation framework for defining and executing modular, scalable, and
-reproducible workflows.
+Meandra defines and executes modular, scalable, and reproducible workflows:
 
-It provides the following benefits:
+- **Composable pipelines**: Build reusable, hierarchical pipelines from atomic tasks.
+- **Declarative configuration**: Control parameters through structured files, runtime overrides,
+  and hierarchical merging.
+- **Dynamic I/O resolution**: Automate file handling and path generation with dynamic rules and
+  metadata tracking.
+- **Execution orchestration**: Resolve task dependencies, track progress, and manage failures
+  and recovery.
+- **Reproducible experiments**: Rerun experiments with identical configurations and parameter sets.
 
-- **Modular workflow composition**: Design reusable and hierarchical pipelines from atomic tasks.
-- **Declarative configuration management**: Control parameters through structured configuration files, runtime overrides, and hierarchical merging.
-- **Flexible input/output resolution**: Automate file handling and path generation with dynamic rules and metadata tracking.
-- **Execution orchestration and monitoring**: Resolve task dependencies, track progress, manage
-  failures and recovery.
-- **Reproducible experimentation**: Rerun experiments with identical configurations, parameter sets,
-  and outputs.
-
-These features make Meandra particularly suited for scientific data analysis and experimental
-simulation research.
+These features make Meandra suited for scientific data analysis and simulation research.
 
 ---
 
@@ -60,52 +55,46 @@ simulation research.
 
 ### Configuration Management
 
-- [ ] **Modular Configuration**: Define structured and nested parameters in reusable and composable configuration files in YAML format, with optional
-  JSON conversion.
-- [ ] **Hierarchical Merging**: Combine multiple configuration sources with customizable precedence.
-- [ ] **Runtime Overrides**: Modify parameters via command-line inputs using dot notation, or alternate
+- [ ] **Modular configuration**: Define structured, composable configuration files in YAML with
+  optional JSON conversion.
+- [ ] **Hierarchical merging**: Combine multiple configuration sources with customizable precedence.
+- [ ] **Runtime overrides**: Modify parameters via command-line dot notation or alternate
   configuration files.
-- [ ] **Variable Interpolation**: Reference variables within configuration files for dynamic parameter
-  setting.
-- [ ] **Dynamic Path Rules**: Specify flexible input/output paths with runtime placeholders for complex
-  file management.
+- [ ] **Variable interpolation**: Reference variables within configuration files to resolve
+  parameters dynamically.
+- [ ] **Dynamic path rules**: Specify input/output paths with runtime placeholders.
 
 ### Workflow Definition and Execution
 
-- [ ] **Modular Composition**: Define atomic computation units (nodes) that can be reused and
-  combined across multi-level workflows for nested loops and hierarchical pipelines.
-- [ ] **Parameter Sweeping**: Conduct multi-run experiments with complex parameter combinations.
-- [ ] **Data Catalog**: Automate data loading and saving with customizable path rules and format
+- [ ] **Modular composition**: Define atomic computation nodes, reusable across workflows with
+  multiple levels for nested loops and hierarchical pipelines.
+- [ ] **Parameter sweeping**: Run multi-run experiments with complex parameter combinations.
+- [ ] **Data catalog**: Automate data loading and saving with customizable path rules and format
   conversion.
-- [ ] **Direct Execution**: Launch workflows with aliases for dynamic instantiation with custom
-  parameter sets.
-- [ ] **Execution Tracking**: Display real-time task progress and status in the terminal.
-- [ ] **Node Dependency Resolution**: Automatically schedule tasks based on inter-step dependencies
-  within workflows.
-- [ ] **Parallel Execution**: Run independent tasks concurrently for improved performance.
-- [ ] **Automated Logging**: Select logging options for comprehensive monitoring and debugging.
-- [ ] **Run-based Outputs**: Automatically generate output directories for distinct runs.
-- [ ] **Failure Handling & Recovery**: Implement robust error management and checkpointing to resume
-  execution from the last successful step or an intermediate checkpoint.
+- [ ] **Execution through aliases**: Launch workflows via aliases with custom parameter sets.
+- [ ] **Execution tracking**: Display real-time task progress and status in the terminal.
+- [ ] **Dependency resolution**: Schedule tasks automatically based on inter-step dependencies.
+- [ ] **Parallel execution**: Run independent tasks concurrently.
+- [ ] **Automated logging**: Configure logging for monitoring and debugging.
+- [ ] **Outputs by run**: Generate output directories for distinct runs automatically.
+- [ ] **Failure recovery**: Resume execution from the last successful step or checkpoint.
 - [ ] **Reproducibility**: Rerun previous experiments with consistent configurations.
 
 ---
 
 ## Installation
 
-To install the package and its dependencies, use one of the following methods:
+### Using pip
 
-### Using Pip Installs Packages
-
-Install the package from the GitHub repository URL via `pip`:
+Install from the GitHub repository:
 
 ```bash
 pip install git+https://github.com/esther-poniatowski/meandra.git
 ```
 
-### Using Conda
+### Using conda
 
-Install the package from the private channel eresthanaconda:
+Install from the eresthanaconda channel:
 
 ```bash
 conda install meandra -c eresthanaconda

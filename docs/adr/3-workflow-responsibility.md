@@ -6,16 +6,16 @@ Accepted
 
 ## Context and Problem Statement
 
-The role of a **workflow** within the library needs to be clearly defined, and distinct from other
-components like nodes, orchestrator, scheduler.
+A **workflow** within the library needs a clear definition, distinct from other components like
+nodes, orchestrator, scheduler.
 
 - What should be the specific responsibilities of a workflow ?
-- Which component should be in charge of dependency resolution ? Is it necessary to introduce
-  schedulers, or workflows themselves can handle this functionality ?
+- Which component should resolve dependencies? Is it necessary to introduce schedulers, or can
+  workflows themselves handle this functionality?
 - If a scheduler is introduced, should it be general across all the workflows or specific for
   different resolution approaches (and thus chosen by each workflow) ?
-- Should workflows be responsible for the execution of their own nodes, or should they delegate this
-  responsibility to the orchestrator ?
+- Should workflows execute their own nodes, or should they delegate execution to the
+  orchestrator?
 
 
 ## Decision Drivers
@@ -33,19 +33,18 @@ components like nodes, orchestrator, scheduler.
 1. **Workflows as Specifications**
 - Workflows serve as central specifications of nodes, dependencies, inputs and outputs, checkpoints
   that define a specific processing run.
-- They do not execute themselves (they do not provide an `execute` method). Instead they delegate
-  this responsibility to the orchestrator, which reads the workflow and executes nodes accordingly.
+- These specifications do not execute themselves (no `execute` method). Instead, the orchestrator
+  reads the workflow and executes nodes accordingly.
 - If a workflow contains sub-workflows, the scheduler recursively unpacks the nodes to determine a
   global execution order for the entire workflow.
 
 2. **Workflows as Actors**
 - Workflows resolve the dependencies between their nodes to determine their execution order.
-- Workflows are responsible for the execution of their nodes, i.e. manages the lifecycle of its
-  execution.
+- Workflows execute their nodes directly, managing the lifecycle of each execution run.
 
 3. **Hybrid Workflows**
-- Workflows are responsible for the resolution of dependencies between their nodes.
-- Workflows delegate the execution of their nodes to the orchestrator.
+- Workflows resolve dependencies between their nodes.
+- Workflows delegate node execution to the orchestrator.
 - The scheduler is optional and can be workflow-specific or general.
 
 

@@ -112,7 +112,7 @@ def execute(self, standardized_input):
 
 **Chosen option**: 2. Standardization Until Nodes
 
-**Justification**: This option provides superior modularity and flexibility, allowing nodes to be
+**Justification**: This approach provides superior modularity and flexibility, allowing nodes to be
 processed uniformly by workflows while maintaining their ability to handle specific operations
 internally.
 

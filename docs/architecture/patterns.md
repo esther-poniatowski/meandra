@@ -48,7 +48,7 @@ class SchedulingOrchestrator(Orchestrator):
         self.scheduler = scheduler
 ```
 
-This allows different scheduling strategies without changing orchestration logic.
+The strategy pattern allows different scheduling policies without changing orchestration logic.
 
 ## Template Method Pattern
 
@@ -71,7 +71,7 @@ tracker.add_callback(lambda t: print(t.percentage))
 tracker.complete_node("step1")  # Callbacks notified
 ```
 
-This decouples progress reporting from execution logic.
+The observer pattern decouples progress reporting from execution logic.
 
 ## Registry Pattern
 
@@ -107,7 +107,7 @@ result = load_data({})
 spec = get_node_spec(load_data)
 ```
 
-This allows gradual adoption and testing without the framework.
+The decorator approach allows gradual adoption and testing without the framework.
 
 ## Context Manager Pattern
 
@@ -124,4 +124,4 @@ with RetryContext(config) as ctx:
             ctx.record_failure(e)
 ```
 
-This provides clean resource management and retry logic.
+The context manager provides clean resource management and retry logic.

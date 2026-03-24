@@ -1,7 +1,7 @@
 # Architectural Overview
 
-Meandra is designed as a modular workflow orchestration system with clear separation between
-definition, execution, and infrastructure concerns.
+Meandra is a modular workflow system that separates definition, execution, and infrastructure
+concerns.
 
 ## Core Components
 

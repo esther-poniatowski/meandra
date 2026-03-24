@@ -153,8 +153,8 @@ def execute(self, inputs: NodeInput) -> NodeOutput:
 **Chosen option**: 3. **Structured object (Dataclass or custom class)**
 
 **Justification**:
-- Provides structured, type-safe interfaces for inputs and outputs. It aligns well with the concept
-  of nodes as self-contained entities with well-defined interfaces.
+- Provides structured, type-safe interfaces for inputs and outputs. This format aligns well with
+  the concept of nodes as self-contained entities with well-defined interfaces.
 - Allows for integration with validation libraries like Pydantic.
 - Enhances maintainability and readability by explicitly defining expected fields and offering a
   central place for documentation.
@@ -198,8 +198,8 @@ def execute(self, inputs: NodeInput) -> NodeOutput:
 - Instead of writing a dataclass for every node, introduce a generic base class for input/output
   objects.
 - Then each node’s input/output class can extend the base class by adding specific fields.
-- This provides a structured interface but also allows conversion to/from dictionaries, easing
-  serialization and interfacing with the data catalog.
+- This base class provides a structured interface but also allows conversion to/from dictionaries,
+  easing serialization and interfacing with the data catalog.
 
 ```python
 from dataclasses import dataclass
@@ -230,9 +230,9 @@ class AddNodeOutput(NodeData):
 
 **Serialization Strategy**
 - Implement a unified serialization mechanism inside the IO handler, so that structured objects
-    automatically serialize/deserialize when stored in checkpoints. This ensures structured objects
-    can be checkpointed efficiently without breaking compatibility, and that checkpointed data is
-    converted back into structured objects before passing them into nodes.
+    automatically serialize/deserialize when stored in checkpoints. This mechanism ensures structured
+    objects can be checkpointed efficiently without breaking compatibility, and that checkpointed
+    data is converted back into structured objects before passing them into nodes.
 - Decouple serialization from nodes: The IO handler should transparently handle storage and
   retrieval.
 ```python
