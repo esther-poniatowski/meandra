@@ -8,21 +8,16 @@ Progress tracking for workflow execution.
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
+
+from meandra.monitoring.state_tracker import NodeState
 
 
 logger = logging.getLogger(__name__)
 
 
-class NodeStatus(str, Enum):
-    """Status of a node in workflow execution."""
-
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    SKIPPED = "skipped"
+# Backward-compatible alias
+NodeStatus = NodeState
 
 
 @dataclass

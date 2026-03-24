@@ -12,7 +12,6 @@ import json
 import pickle
 import logging
 
-import numpy as np
 logger = logging.getLogger(__name__)
 
 
@@ -111,18 +110,20 @@ class NumpyHandler(IOHandler):
 
     EXTENSIONS = [".npy", ".npz"]
 
-    def read(self, path: Union[str, Path]) -> Union[np.ndarray, Dict[str, np.ndarray]]:
+    def read(self, path: Union[str, Path]) -> Any:
         """Read NumPy array(s) from file."""
+        import numpy as np
+
         path = Path(path)
         logger.debug(f"Reading numpy from {path}")
         if path.suffix == ".npz":
             return dict(np.load(path))
         return np.load(path)
 
-    def write(
-        self, path: Union[str, Path], data: Union[np.ndarray, Dict[str, np.ndarray]]
-    ) -> None:
+    def write(self, path: Union[str, Path], data: Any) -> None:
         """Write NumPy array(s) to file."""
+        import numpy as np
+
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         logger.debug(f"Writing numpy to {path}")
@@ -320,8 +321,7 @@ class HandlerRegistry:
         return ext.lower() in self._handlers
 
 
-# Default global registry for backward compatibility
-HANDLERS: Dict[str, IOHandler] = {}
+# Lazily-initialised default registry (no mutable module-level dict).
 _default_registry: HandlerRegistry | None = None
 
 
@@ -330,23 +330,27 @@ def _get_default_registry() -> HandlerRegistry:
     global _default_registry
     if _default_registry is None:
         _default_registry = HandlerRegistry(register_defaults=True)
-        # Sync with legacy HANDLERS dict
-        HANDLERS.update(_default_registry._handlers)
     return _default_registry
 
 
 def register_handler(handler: IOHandler) -> None:
     """Register a handler in the default registry."""
-    registry = _get_default_registry()
-    registry.register(handler)
-    # Keep legacy dict in sync
-    for ext in handler.EXTENSIONS:
-        HANDLERS[ext] = handler
+    _get_default_registry().register(handler)
 
 
 def register_default_handlers() -> None:
     """Register the default handlers if none are registered."""
     _get_default_registry()
+
+
+def reset_default_registry() -> None:
+    """
+    Reset the default registry to a fresh state with default handlers.
+
+    Useful for test isolation -- ensures no cross-test handler leakage.
+    """
+    global _default_registry
+    _default_registry = HandlerRegistry(register_defaults=True)
 
 
 def get_handler(path: Union[str, Path]) -> IOHandler:

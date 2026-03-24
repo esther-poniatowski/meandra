@@ -6,17 +6,12 @@ Workflow scheduling and dependency resolution.
 """
 
 from abc import ABC, abstractmethod
-from collections import deque
-from typing import List, Dict
+from typing import List
 
 from meandra.core.workflow import Workflow
 from meandra.core.node import Node
-
-
-class CyclicDependencyError(Exception):
-    """Raised when a workflow contains circular dependencies."""
-
-    pass
+from meandra.core.errors import DependencyResolutionError
+from meandra.core.graph import topological_layers
 
 
 class Scheduler(ABC):
@@ -65,7 +60,7 @@ class DAGScheduler(Scheduler):
     Notes
     -----
     The scheduler detects circular dependencies and raises
-    CyclicDependencyError if found.
+    DependencyResolutionError if found.
     """
 
     def resolve(self, workflow: Workflow) -> List[List[Node]]:
@@ -84,7 +79,7 @@ class DAGScheduler(Scheduler):
 
         Raises
         ------
-        CyclicDependencyError
+        DependencyResolutionError
             If the workflow contains circular dependencies.
         KeyError
             If a dependency references a non-existent node.
@@ -92,56 +87,21 @@ class DAGScheduler(Scheduler):
         if len(workflow) == 0:
             return []
 
-        # Build adjacency list and in-degree count
-        # adjacency[a] = nodes that depend on a
-        adjacency: Dict[str, List[str]] = {node.name: [] for node in workflow}
-        in_degree: Dict[str, int] = {node.name: 0 for node in workflow}
+        nodes = {node.name: node for node in workflow}
+        deps = {node.name: node.dependencies for node in workflow}
 
-        for node in workflow:
-            for dep_name in node.dependencies:
-                if dep_name not in workflow:
-                    raise KeyError(
-                        f"Node '{node.name}' depends on '{dep_name}' which does not exist"
-                    )
-                adjacency[dep_name].append(node.name)
-                in_degree[node.name] += 1
-
-        # Kahn's algorithm with layer grouping
-        layers: List[List[Node]] = []
-        queue: deque[str] = deque()
-
-        # Initialize queue with nodes that have no dependencies
-        for name, degree in in_degree.items():
-            if degree == 0:
-                queue.append(name)
-
-        processed_count = 0
-
-        while queue:
-            # Process all nodes at current depth level (same layer)
-            layer_size = len(queue)
-            current_layer: List[Node] = []
-
-            for _ in range(layer_size):
-                name = queue.popleft()
-                current_layer.append(workflow.get_node(name))
-                processed_count += 1
-
-                # Decrease in-degree for dependent nodes
-                for dependent in adjacency[name]:
-                    in_degree[dependent] -= 1
-                    if in_degree[dependent] == 0:
-                        queue.append(dependent)
-
-            layers.append(current_layer)
+        layers = topological_layers(nodes, deps)
 
         # Check for cycles
+        processed_count = sum(len(layer) for layer in layers)
         if processed_count != len(workflow):
-            # Find nodes involved in cycle for error message
-            cycle_nodes = [name for name, degree in in_degree.items() if degree > 0]
-            raise CyclicDependencyError(
+            processed_names = {n.name for layer in layers for n in layer}
+            cycle_nodes = [name for name in nodes if name not in processed_names]
+            raise DependencyResolutionError(
                 f"Workflow '{workflow.name}' contains circular dependencies "
-                f"involving nodes: {cycle_nodes}"
+                f"involving nodes: {cycle_nodes}",
+                workflow_name=workflow.name,
+                cycle=cycle_nodes,
             )
 
         return layers

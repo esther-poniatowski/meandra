@@ -8,9 +8,9 @@ from meandra import (
     Node,
     Workflow,
     DAGScheduler,
-    CyclicDependencyError,
+    DependencyResolutionError,
     ValidationResult,
-    WorkflowValidationError,
+    ValidationError,
 )
 
 
@@ -186,7 +186,7 @@ class TestDAGScheduler:
         wf.add_node(Node("B", lambda x: x, dependencies=["A"]))
         wf.add_node(Node("C", lambda x: x, dependencies=["B"]))
 
-        with pytest.raises(CyclicDependencyError, match="circular dependencies"):
+        with pytest.raises(DependencyResolutionError, match="circular dependencies"):
             scheduler.resolve(wf)
 
     def test_missing_dependency_raises(self):
@@ -429,7 +429,7 @@ class TestWorkflowValidation:
 
         result = wf.validate()
 
-        with pytest.raises(WorkflowValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info:
             result.raise_if_invalid()
 
         assert len(exc_info.value.errors) == 1

@@ -5,22 +5,14 @@ meandra.core.workflow
 Workflow definition and management.
 """
 
-from collections import deque
 from dataclasses import dataclass, field
 from hashlib import sha256
 import json
 from typing import Dict, List, Iterator, Set, Tuple, Optional
 
 from meandra.core.node import Node
-from meandra.configuration.mod import ConfigProvider
-
-
-class WorkflowValidationError(Exception):
-    """Raised when workflow validation fails."""
-
-    def __init__(self, message: str, errors: List[str]):
-        super().__init__(message)
-        self.errors = errors
+from meandra.core.errors import ValidationError
+from meandra.core.graph import topological_layers
 
 
 @dataclass
@@ -31,12 +23,14 @@ class ValidationResult:
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
 
-    def raise_if_invalid(self) -> None:
-        """Raise WorkflowValidationError if validation failed."""
+    def raise_if_invalid(self, workflow_name: str = "") -> None:
+        """Raise ValidationError if validation failed."""
         if not self.valid:
-            raise WorkflowValidationError(
+            raise ValidationError(
                 f"Workflow validation failed with {len(self.errors)} error(s)",
+                workflow_name=workflow_name,
                 errors=self.errors,
+                warnings=self.warnings,
             )
 
 
@@ -129,7 +123,7 @@ class Workflow:
         return name in self.nodes
 
     def validate(
-        self, available_inputs: Optional[Set[str] | ConfigProvider] = None
+        self, available_inputs: Optional[Set[str]] = None
     ) -> ValidationResult:
         """
         Validate the workflow structure.
@@ -141,9 +135,8 @@ class Workflow:
 
         Parameters
         ----------
-        available_inputs : Optional[Set[str] | ConfigProvider]
-            Set of input keys that will be provided at execution time, or a
-            ConfigProvider to resolve and infer available keys.
+        available_inputs : Optional[Set[str]]
+            Set of input keys that will be provided at execution time.
             If None, input satisfiability is not checked.
 
         Returns
@@ -160,7 +153,7 @@ class Workflow:
         >>> result.valid
         True
         """
-        available_inputs_set = self._resolve_available_inputs(available_inputs)
+        available_inputs_set = set(available_inputs) if available_inputs is not None else None
         inputs_key = None if available_inputs_set is None else tuple(sorted(available_inputs_set))
         cache_key = (self.structure_hash(), inputs_key)
         cached = self._validation_cache.get(cache_key)
@@ -178,10 +171,12 @@ class Workflow:
                         f"Node '{node.name}' depends on '{dep}' which does not exist"
                     )
 
-        # Check 2: Cyclic dependencies (Kahn's algorithm)
+        # Check 2: Cyclic dependencies (shared topological sort)
         topological_order: List[Node] = []
         if not errors:
-            topological_order = self._topological_order()
+            deps = {name: node.dependencies for name, node in self.nodes.items()}
+            layers = topological_layers(self.nodes, deps)
+            topological_order = [node for layer in layers for node in layer]
             if len(topological_order) != len(self.nodes):
                 cycle_nodes = [
                     name for name in self.nodes if name not in {n.name for n in topological_order}
@@ -240,31 +235,6 @@ class Workflow:
         encoded = json.dumps(payload, sort_keys=True).encode("utf-8")
         return sha256(encoded).hexdigest()
 
-    def _topological_order(self) -> List[Node]:
-        """Return nodes in topological order using Kahn's algorithm."""
-        in_degree: Dict[str, int] = {name: 0 for name in self.nodes}
-        for node in self.nodes.values():
-            for dep in node.dependencies:
-                if dep in in_degree:
-                    in_degree[node.name] += 1
-
-        queue: deque[str] = deque()
-        for name, degree in in_degree.items():
-            if degree == 0:
-                queue.append(name)
-
-        order: List[Node] = []
-        while queue:
-            current = queue.popleft()
-            order.append(self.nodes[current])
-            for node in self.nodes.values():
-                if current in node.dependencies:
-                    in_degree[node.name] -= 1
-                    if in_degree[node.name] == 0:
-                        queue.append(node.name)
-
-        return order
-
     def _allowed_inputs_for_node(self, node: Node, available_inputs: Set[str]) -> Set[str]:
         """Compute the allowed inputs for a node based on dependencies."""
         allowed = set(available_inputs)
@@ -282,17 +252,6 @@ class Workflow:
                 if dep in dependents:
                     dependents[dep].append(node.name)
         return dependents
-
-    def _resolve_available_inputs(
-        self, available_inputs: Optional[Set[str] | ConfigProvider]
-    ) -> Optional[Set[str]]:
-        """Resolve available inputs from a set or ConfigProvider."""
-        if available_inputs is None:
-            return None
-        if isinstance(available_inputs, ConfigProvider):
-            available_inputs.resolve()
-            return set(available_inputs.to_dict().keys())
-        return set(available_inputs)
 
     def build_model(self) -> "WorkflowModel":
         """

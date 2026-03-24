@@ -46,14 +46,22 @@ from meandra.core.workflow import (
     Workflow,
     WorkflowModel,
     ValidationResult,
-    WorkflowValidationError,
+)
+from meandra.core.errors import (
+    MeandraError,
+    WorkflowError,
+    ValidationError,
+    DependencyResolutionError,
+    NodeExecutionError,
+    CheckpointError,
+    ConfigurationError,
+    RetryExhaustedError,
 )
 
 # Scheduling
 from meandra.scheduling.scheduler import (
     Scheduler,
     DAGScheduler,
-    CyclicDependencyError,
 )
 
 # Orchestration
@@ -121,11 +129,18 @@ __all__ = [
     "Workflow",
     "WorkflowModel",
     "ValidationResult",
-    "WorkflowValidationError",
+    # Error hierarchy
+    "MeandraError",
+    "WorkflowError",
+    "ValidationError",
+    "DependencyResolutionError",
+    "NodeExecutionError",
+    "CheckpointError",
+    "ConfigurationError",
+    "RetryExhaustedError",
     # Scheduling
     "Scheduler",
     "DAGScheduler",
-    "CyclicDependencyError",
     # Orchestration
     "Orchestrator",
     "SchedulingOrchestrator",
