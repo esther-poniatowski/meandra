@@ -6,10 +6,14 @@ Checkpoint management for workflow resumption.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, List
+from typing import TYPE_CHECKING, Any, Dict, Optional, List
 import logging
 
 from meandra.checkpoint.storage import CheckpointStorage, FileSystemStorage, CheckpointMetadata
+from meandra.core.errors import CheckpointError
+
+if TYPE_CHECKING:
+    from meandra.core.workflow import Workflow
 
 
 logger = logging.getLogger(__name__)
@@ -26,6 +30,7 @@ class CheckpointInfo:
     run_id: str
     timestamp: str
     workflow_hash: Optional[str] = None
+    completed_nodes: tuple[str, ...] = ()
 
 
 @dataclass
@@ -35,6 +40,18 @@ class Checkpoint:
     info: CheckpointInfo
     data: Any
     context: Dict[str, Any]
+    state: Dict[str, Dict[str, Any]]
+
+
+@dataclass(frozen=True)
+class ResumePlan:
+    """Explicit plan describing how a workflow may safely resume."""
+
+    checkpoint_id: str
+    run_id: str
+    completed_nodes: tuple[str, ...]
+    context: Dict[str, Any]
+    state: Dict[str, Dict[str, Any]]
 
 
 class CheckpointManager:
@@ -98,6 +115,8 @@ class CheckpointManager:
         run_id: str,
         context: Optional[Dict[str, Any]] = None,
         workflow_hash: Optional[str] = None,
+        workflow_state: Optional[Dict[str, Dict[str, Any]]] = None,
+        completed_nodes: Optional[List[str]] = None,
     ) -> str:
         """
         Save a checkpoint after node execution.
@@ -126,6 +145,10 @@ class CheckpointManager:
         checkpoint_data = {
             "node_output": data,
             "context": context or {},
+            "workflow_state": workflow_state or {
+                "inputs": {},
+                "artifacts": dict(context or {}),
+            },
         }
 
         checkpoint_id = self.storage.save(
@@ -135,6 +158,7 @@ class CheckpointManager:
             data=checkpoint_data,
             run_id=run_id,
             workflow_hash=workflow_hash,
+            completed_nodes=completed_nodes,
         )
 
         logger.info(
@@ -172,12 +196,21 @@ class CheckpointManager:
                 run_id=metadata.run_id,
                 timestamp=metadata.timestamp,
                 workflow_hash=metadata.workflow_hash,
+                completed_nodes=tuple(metadata.completed_nodes or (metadata.node_name,)),
             )
+            state = checkpoint_data.get("workflow_state") or {
+                "inputs": {},
+                "artifacts": checkpoint_data.get("context", {}),
+            }
 
             return Checkpoint(
                 info=info,
                 data=checkpoint_data.get("node_output"),
                 context=checkpoint_data.get("context", {}),
+                state={
+                    "inputs": dict(state.get("inputs", {})),
+                    "artifacts": dict(state.get("artifacts", {})),
+                },
             )
         except Exception as e:
             logger.error(f"Failed to load checkpoint {checkpoint_id}: {e}")
@@ -203,10 +236,7 @@ class CheckpointManager:
 
         # Get most recent (first in sorted list)
         latest = checkpoints[0]
-        checkpoint_dir = latest.data_path.rsplit("/", 1)[0]
-        checkpoint_id = checkpoint_dir.rsplit("/", 1)[-1]
-
-        return self.load(checkpoint_id)
+        return self.load(latest.checkpoint_id)
 
     def load_for_run(self, workflow_name: str, run_id: str) -> Optional[Checkpoint]:
         """
@@ -227,9 +257,7 @@ class CheckpointManager:
         checkpoints = self.list_checkpoints(workflow_name)
         for metadata in checkpoints:
             if metadata.run_id == run_id:
-                checkpoint_dir = metadata.data_path.rsplit("/", 1)[0]
-                checkpoint_id = checkpoint_dir.rsplit("/", 1)[-1]
-                return self.load(checkpoint_id)
+                return self.load(metadata.checkpoint_id)
         return None
 
     def list_checkpoints(self, workflow_name: str) -> List[CheckpointMetadata]:
@@ -277,10 +305,36 @@ class CheckpointManager:
         checkpoints = self.list_checkpoints(workflow_name)
         count = 0
         for metadata in checkpoints:
-            checkpoint_dir = metadata.data_path.rsplit("/", 1)[0]
-            checkpoint_id = checkpoint_dir.rsplit("/", 1)[-1]
-            self.storage.delete(checkpoint_id)
+            self.storage.delete(metadata.checkpoint_id)
             count += 1
 
         logger.info(f"Cleared {count} checkpoints for workflow '{workflow_name}'")
         return count
+
+    def build_resume_plan(self, workflow: "Workflow", checkpoint: Checkpoint) -> ResumePlan:
+        """Validate checkpoint compatibility and build an explicit resume plan."""
+        workflow_hash = workflow.structure_hash()
+        if checkpoint.info.workflow_hash != workflow_hash:
+            raise CheckpointError(
+                "Checkpoint is incompatible with the current workflow structure.",
+                operation="resume",
+                checkpoint_id=checkpoint.info.checkpoint_id,
+            )
+        completed_nodes = checkpoint.info.completed_nodes or (checkpoint.info.node_name,)
+        unknown = sorted(set(completed_nodes) - set(workflow.nodes))
+        if unknown:
+            raise CheckpointError(
+                f"Checkpoint references unknown completed node(s): {unknown}",
+                operation="resume",
+                checkpoint_id=checkpoint.info.checkpoint_id,
+            )
+        return ResumePlan(
+            checkpoint_id=checkpoint.info.checkpoint_id,
+            run_id=checkpoint.info.run_id,
+            completed_nodes=tuple(completed_nodes),
+            context=dict(checkpoint.context),
+            state={
+                "inputs": dict(checkpoint.state.get("inputs", {})),
+                "artifacts": dict(checkpoint.state.get("artifacts", {})),
+            },
+        )

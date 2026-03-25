@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 class CheckpointMetadata:
     """Metadata for a checkpoint."""
 
+    checkpoint_id: str
     workflow_name: str
     node_name: str
     node_index: int
@@ -30,10 +31,12 @@ class CheckpointMetadata:
     timestamp: str
     data_path: str
     workflow_hash: Optional[str] = None
+    completed_nodes: List[str] = None
 
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return {
+            "checkpoint_id": self.checkpoint_id,
             "workflow_name": self.workflow_name,
             "node_name": self.node_name,
             "node_index": self.node_index,
@@ -41,12 +44,14 @@ class CheckpointMetadata:
             "timestamp": self.timestamp,
             "data_path": self.data_path,
             "workflow_hash": self.workflow_hash,
+            "completed_nodes": list(self.completed_nodes or []),
         }
 
     @classmethod
     def from_dict(cls, data: dict) -> "CheckpointMetadata":
         """Create from dictionary."""
         return cls(
+            checkpoint_id=data.get("checkpoint_id") or Path(data["data_path"]).parent.name,
             workflow_name=data["workflow_name"],
             node_name=data["node_name"],
             node_index=data["node_index"],
@@ -54,6 +59,7 @@ class CheckpointMetadata:
             timestamp=data["timestamp"],
             data_path=data["data_path"],
             workflow_hash=data.get("workflow_hash"),
+            completed_nodes=list(data.get("completed_nodes") or [data["node_name"]]),
         )
 
 
@@ -73,6 +79,7 @@ class CheckpointStorage(ABC):
         data: Any,
         run_id: str,
         workflow_hash: Optional[str] = None,
+        completed_nodes: Optional[List[str]] = None,
     ) -> str:
         """
         Save checkpoint data.
@@ -210,6 +217,7 @@ class FileSystemStorage(CheckpointStorage):
         data: Any,
         run_id: str,
         workflow_hash: Optional[str] = None,
+        completed_nodes: Optional[List[str]] = None,
     ) -> str:
         """Save checkpoint data to filesystem."""
         checkpoint_id = self._generate_checkpoint_id(workflow_name, run_id)
@@ -225,6 +233,7 @@ class FileSystemStorage(CheckpointStorage):
 
         # Save metadata as JSON
         metadata = CheckpointMetadata(
+            checkpoint_id=checkpoint_id,
             workflow_name=workflow_name,
             node_name=node_name,
             node_index=node_index,
@@ -232,6 +241,7 @@ class FileSystemStorage(CheckpointStorage):
             timestamp=datetime.now().isoformat(),
             data_path=str(data_path),
             workflow_hash=workflow_hash,
+            completed_nodes=sorted(completed_nodes or [node_name]),
         )
         metadata_path = checkpoint_dir / "metadata.json"
         with open(metadata_path, "w") as f:
@@ -309,5 +319,4 @@ class FileSystemStorage(CheckpointStorage):
         if len(checkpoints) > self.retention:
             # Delete oldest checkpoints
             for metadata in checkpoints[self.retention :]:
-                checkpoint_id = Path(metadata.data_path).parent.name
-                self.delete(checkpoint_id)
+                self.delete(metadata.checkpoint_id)

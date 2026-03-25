@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from meandra.core.node import Node
 
 from meandra.datastore.io_handlers import IOHandler
+from meandra.integration.protocols import IOBackendDescriptor
 from meandra.utils.typing import check_type
 
 logger = logging.getLogger(__name__)
@@ -55,16 +56,16 @@ class DataStructureIOHandler(IOHandler):
 
     EXTENSIONS: List[str] = [".pkl", ".pickle", ".npy", ".npz", ".yaml", ".yml", ".json", ".h5", ".hdf5"]
 
-    _EXTENSION_MAP: Dict[str, tuple[str, str]] = {
-        ".pkl": ("SaverPKL", "LoaderPKL"),
-        ".pickle": ("SaverPKL", "LoaderPKL"),
-        ".npy": ("SaverNPY", "LoaderNPY"),
-        ".npz": ("SaverNPZ", "LoaderNPZ"),
-        ".yaml": ("SaverYAML", "LoaderYAML"),
-        ".yml": ("SaverYAML", "LoaderYAML"),
-        ".json": ("SaverJSON", "LoaderJSON"),
-        ".h5": ("SaverHDF5", "LoaderHDF5"),
-        ".hdf5": ("SaverHDF5", "LoaderHDF5"),
+    _EXTENSION_MAP: Dict[str, IOBackendDescriptor] = {
+        ".pkl": IOBackendDescriptor(".pkl", "SaverPKL", "LoaderPKL"),
+        ".pickle": IOBackendDescriptor(".pickle", "SaverPKL", "LoaderPKL"),
+        ".npy": IOBackendDescriptor(".npy", "SaverNPY", "LoaderNPY"),
+        ".npz": IOBackendDescriptor(".npz", "SaverNPZ", "LoaderNPZ"),
+        ".yaml": IOBackendDescriptor(".yaml", "SaverYAML", "LoaderYAML"),
+        ".yml": IOBackendDescriptor(".yml", "SaverYAML", "LoaderYAML"),
+        ".json": IOBackendDescriptor(".json", "SaverJSON", "LoaderJSON"),
+        ".h5": IOBackendDescriptor(".h5", "SaverHDF5", "LoaderHDF5"),
+        ".hdf5": IOBackendDescriptor(".hdf5", "SaverHDF5", "LoaderHDF5"),
     }
 
     def __init__(
@@ -147,11 +148,10 @@ class DataStructureIOHandler(IOHandler):
             ext = path.suffix.lower()
             if ext not in self._EXTENSION_MAP:
                 return None
-            _, loader_name = self._EXTENSION_MAP[ext]
-            loader_cls = getattr(morpha_loaders, loader_name, None)
+            loader_cls = self._EXTENSION_MAP[ext].resolve_loader(morpha_loaders)
             if loader_cls is None:
                 raise ValueError(
-                    f"Loader class '{loader_name}' not found for extension '{ext}'"
+                    f"Loader class '{self._EXTENSION_MAP[ext].loader_name}' not found for extension '{ext}'"
                 )
             return loader_cls
         except ImportError:
@@ -165,11 +165,10 @@ class DataStructureIOHandler(IOHandler):
             ext = path.suffix.lower()
             if ext not in self._EXTENSION_MAP:
                 return None
-            saver_name, _ = self._EXTENSION_MAP[ext]
-            saver_cls = getattr(morpha_savers, saver_name, None)
+            saver_cls = self._EXTENSION_MAP[ext].resolve_saver(morpha_savers)
             if saver_cls is None:
                 raise ValueError(
-                    f"Saver class '{saver_name}' not found for extension '{ext}'"
+                    f"Saver class '{self._EXTENSION_MAP[ext].saver_name}' not found for extension '{ext}'"
                 )
             return saver_cls
         except ImportError:
@@ -181,7 +180,11 @@ class DataStructureIOHandler(IOHandler):
         """Register a custom Saver/Loader by extension."""
         if not extension.startswith("."):
             extension = f".{extension}"
-        cls._EXTENSION_MAP[extension.lower()] = (saver_name, loader_name)
+        cls._EXTENSION_MAP[extension.lower()] = IOBackendDescriptor(
+            extension.lower(),
+            saver_name,
+            loader_name,
+        )
         if extension.lower() not in cls.EXTENSIONS:
             cls.EXTENSIONS.append(extension.lower())
 
@@ -238,7 +241,7 @@ def create_typed_node(
     ...     output_types={"result": np.ndarray},
     ... )
     """
-    from meandra.core.node import Node
+    from meandra.api.decorators import NodeSpec
 
     def input_contract(inputs: Dict[str, Any]) -> None:
         if input_types is None:
@@ -268,10 +271,12 @@ def create_typed_node(
                     f"Output '{key}' expected {expected_type}, got {type(value)}"
                 )
 
-    return Node(
+    return NodeSpec(
         name=name,
         func=func,
+        inputs=list(input_types or []),
+        outputs=list(output_types or []),
         input_contract=input_contract if input_types else None,
         output_contract=output_contract if output_types else None,
         **kwargs,
-    )
+    ).to_node()

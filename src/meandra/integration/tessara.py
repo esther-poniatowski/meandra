@@ -241,21 +241,8 @@ class TessaraNodeAdapter:
         Node
             New node with parameter-injected function.
         """
-        from meandra.core.node import Node
-
         wrapped_func = self.wrap_function(node.func, param_names, param_aliases, validate)
-
-        return Node(
-            name=node.name,
-            func=wrapped_func,
-            dependencies=node.dependencies,
-            inputs=node.inputs,
-            outputs=node.outputs,
-            is_checkpointable=node.is_checkpointable,
-            accepts_context=node.accepts_context,
-            input_contract=node.input_contract,
-            output_contract=node.output_contract,
-        )
+        return node.clone(func=wrapped_func)
 
     def adapt_workflow(
         self,
@@ -280,22 +267,22 @@ class TessaraNodeAdapter:
         Workflow
             New workflow with parameter-adapted nodes.
         """
-        from meandra.core.workflow import Workflow
+        def transform(node: "Node") -> "Node":
+            if node_params is None or node.name in node_params:
+                params_for_node = node_params.get(node.name) if node_params else None
+                aliases_for_node = node_aliases.get(node.name) if node_aliases else None
+                return self.bind_to_node(node, params_for_node, aliases_for_node, validate)
+            return node
 
-        # Create new workflow
-        adapted_workflow = Workflow(name=workflow.name)
+        return workflow.transform_nodes(transform)
 
-        # Iterate over node values (workflow.nodes is Dict[str, Node])
-        for node_name, node in workflow.nodes.items():
-            if node_params is None or node_name in node_params:
-                params_for_node = node_params.get(node_name) if node_params else None
-                aliases_for_node = node_aliases.get(node_name) if node_aliases else None
-                adapted_node = self.bind_to_node(node, params_for_node, aliases_for_node, validate)
-            else:
-                adapted_node = node
-            adapted_workflow.add_node(adapted_node)
+    def transform_node(self, node: "Node") -> "Node":
+        """Implement the stable node-transformer seam."""
+        return self.bind_to_node(node)
 
-        return adapted_workflow
+    def transform_workflow(self, workflow: "Workflow") -> "Workflow":
+        """Implement the stable workflow-transformer seam."""
+        return self.adapt_workflow(workflow)
 
 
 class SweepOrchestrator:

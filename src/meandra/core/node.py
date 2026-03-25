@@ -5,8 +5,32 @@ meandra.core.node
 Processing nodes for workflow execution.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any, Dict, List, Callable, Optional
+
+
+@dataclass(frozen=True)
+class PortSpec:
+    """Explicit description of a workflow input or output port."""
+
+    name: str
+
+
+@dataclass(frozen=True)
+class NodeContract:
+    """Explicit IO contract for a workflow node."""
+
+    inputs: tuple[PortSpec, ...] = ()
+    outputs: tuple[PortSpec, ...] = ()
+    accepts_context: bool = False
+
+    @property
+    def input_names(self) -> List[str]:
+        return [port.name for port in self.inputs]
+
+    @property
+    def output_names(self) -> List[str]:
+        return [port.name for port in self.outputs]
 
 
 @dataclass
@@ -58,6 +82,15 @@ class Node:
     input_contract: Optional[Callable[[Dict[str, Any]], None]] = None
     output_contract: Optional[Callable[[Dict[str, Any]], None]] = None
 
+    @property
+    def contract(self) -> NodeContract:
+        """Structured contract shared by validation, CLI, and execution layers."""
+        return NodeContract(
+            inputs=tuple(PortSpec(name) for name in self.inputs),
+            outputs=tuple(PortSpec(name) for name in self.outputs),
+            accepts_context=self.accepts_context,
+        )
+
     def execute(self, inputs: Dict[str, Any]) -> Dict[str, Any]:
         """
         Execute the node function with the provided inputs.
@@ -78,8 +111,8 @@ class Node:
         # Ensure result is a dict
         if not isinstance(result, dict):
             # If function returns a single value, wrap it
-            if len(self.outputs) == 1:
-                result = {self.outputs[0]: result}
+            if len(self.contract.output_names) == 1:
+                result = {self.contract.output_names[0]: result}
             else:
                 raise ValueError(
                     f"Node '{self.name}' must return a dict, got {type(result)}"
@@ -87,6 +120,10 @@ class Node:
         if self.output_contract is not None:
             self.output_contract(result)
         return result
+
+    def clone(self, **changes: Any) -> "Node":
+        """Create a modified copy without reconstructing the node field-by-field."""
+        return replace(self, **changes)
 
     def __hash__(self) -> int:
         return hash(self.name)

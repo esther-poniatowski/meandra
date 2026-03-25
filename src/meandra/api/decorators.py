@@ -293,14 +293,14 @@ class PipelineSpec:
     ----------
     name : str
         Pipeline name.
-    cls : Type
-        The decorated class.
+    cls : Optional[Type]
+        The decorated class when applicable.
     node_specs : List[NodeSpec]
         Node specifications discovered from decorated methods.
     """
 
     name: str
-    cls: Type[Any]
+    cls: Optional[Type[Any]]
     node_specs: List[NodeSpec] = field(default_factory=list)
 
     def build(
@@ -323,7 +323,7 @@ class PipelineSpec:
         Workflow
             Configured Workflow instance.
         """
-        if instance is None:
+        if instance is None and self.cls is not None:
             instance = self.cls()
 
         workflow = Workflow(name=self.name)
@@ -348,6 +348,17 @@ class PipelineSpec:
                 )
 
         return workflow
+
+    def required_inputs(self) -> set[str]:
+        """Return workflow inputs expected from outside the pipeline."""
+        produced: set[str] = set()
+        required: set[str] = set()
+        for spec in self.node_specs:
+            for input_name in spec.inputs:
+                if input_name not in produced:
+                    required.add(input_name)
+            produced.update(spec.outputs)
+        return required
 
 
 # Marker attribute for decorated classes

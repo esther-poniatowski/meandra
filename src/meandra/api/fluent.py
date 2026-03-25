@@ -28,6 +28,7 @@ Examples
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
+from meandra.api.decorators import NodeSpec, PipelineSpec
 from meandra.core.node import Node
 from meandra.core.workflow import Workflow
 
@@ -123,8 +124,12 @@ class StepBuilder:
         Node
             Configured Node instance.
         """
+        return self.to_spec().to_node()
+
+    def to_spec(self) -> NodeSpec:
+        """Convert the fluent builder into the canonical node specification."""
         node_name = self.name or self.func.__name__
-        return Node(
+        return NodeSpec(
             name=node_name,
             func=self.func,
             dependencies=self.dependencies,
@@ -188,15 +193,15 @@ class PipelineBuilder:
         Workflow
             Configured Workflow instance.
         """
-        workflow = Workflow(self.name)
-        seen_names: set[str] = set()
-        for step_builder in self.steps:
-            node = step_builder.build()
-            if node.name in seen_names:
-                raise ValueError(f"Duplicate node name '{node.name}' in workflow '{self.name}'")
-            seen_names.add(node.name)
-            workflow.add_node(node)
-        return workflow
+        return self.to_spec().build()
+
+    def to_spec(self) -> PipelineSpec:
+        """Compile the fluent pipeline into the canonical workflow specification."""
+        return PipelineSpec(
+            name=self.name,
+            cls=None,
+            node_specs=[step_builder.to_spec() for step_builder in self.steps],
+        )
 
 
 def step(func: Callable[[Dict[str, Any]], Any]) -> StepBuilder:

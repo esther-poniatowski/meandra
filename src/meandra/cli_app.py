@@ -331,9 +331,7 @@ def cli_validate(
             raise typer.Exit(code=1)
 
         # Collect all required inputs
-        required_inputs: set[str] = set()
-        for node in workflow.nodes.values():
-            required_inputs.update(node.inputs)
+        required_inputs = spec.required_inputs()
 
         # Check for missing inputs
         provided = set(config_data.keys())

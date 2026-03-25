@@ -8,7 +8,7 @@ Workflow definition and management.
 from dataclasses import dataclass, field
 from hashlib import sha256
 import json
-from typing import Dict, List, Iterator, Set, Tuple, Optional
+from typing import Callable, Dict, List, Iterator, Set, Tuple, Optional
 
 from meandra.core.node import Node
 from meandra.core.errors import ValidationError
@@ -189,7 +189,7 @@ class Workflow:
         if available_inputs_set is not None and not errors:
             for node in topological_order:
                 allowed_inputs = self._allowed_inputs_for_node(node, available_inputs_set)
-                for input_key in node.inputs:
+                for input_key in node.contract.input_names:
                     if input_key not in allowed_inputs:
                         errors.append(
                             f"Node '{node.name}' requires input '{input_key}' "
@@ -224,8 +224,8 @@ class Workflow:
                 {
                     "name": node.name,
                     "dependencies": sorted(node.dependencies),
-                    "inputs": sorted(node.inputs),
-                    "outputs": sorted(node.outputs),
+                    "inputs": sorted(node.contract.input_names),
+                    "outputs": sorted(node.contract.output_names),
                     "accepts_context": node.accepts_context,
                     "is_checkpointable": node.is_checkpointable,
                 }
@@ -241,7 +241,7 @@ class Workflow:
         for dep_name in node.dependencies:
             dep = self.nodes.get(dep_name)
             if dep is not None:
-                allowed.update(dep.outputs)
+                allowed.update(dep.contract.output_names)
         return allowed
 
     def _dependents_map(self) -> Dict[str, List[str]]:
@@ -269,8 +269,8 @@ class Workflow:
         for node in self.nodes.values():
             for dep in node.dependencies:
                 edges.append((dep, node.name))
-            outputs.update(node.outputs)
-            inputs.update(node.inputs)
+            outputs.update(node.contract.output_names)
+            inputs.update(node.contract.input_names)
 
         return WorkflowModel(
             name=self.name,
@@ -279,6 +279,29 @@ class Workflow:
             inputs=sorted(inputs),
             outputs=sorted(outputs),
         )
+
+    def required_inputs(self) -> Set[str]:
+        """Return workflow inputs that must come from outside the workflow."""
+        required: Set[str] = set()
+        produced: Set[str] = set()
+        for layer in topological_layers(self.nodes, {name: node.dependencies for name, node in self.nodes.items()}):
+            for node in layer:
+                for input_name in node.contract.input_names:
+                    if input_name not in produced:
+                        required.add(input_name)
+                produced.update(node.contract.output_names)
+        return required
+
+    def clone_with_nodes(self, nodes: List[Node]) -> "Workflow":
+        """Create a workflow copy from a new node collection."""
+        cloned = Workflow(self.name)
+        for node in nodes:
+            cloned.add_node(node)
+        return cloned
+
+    def transform_nodes(self, transformer: Callable[[Node], Node]) -> "Workflow":
+        """Apply a node transformer across the workflow through a stable extension seam."""
+        return self.clone_with_nodes([transformer(node) for node in self.nodes.values()])
 
 
 @dataclass(frozen=True)
