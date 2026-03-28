@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/python-supported-blue)](https://www.python.org/)
 [![License: GPL](https://img.shields.io/badge/License-GPL-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
 
-Workflow manager for modular, reproducible processing pipelines.
+Runs modular data processing pipelines with reproducible configurations.
 
 ---
 

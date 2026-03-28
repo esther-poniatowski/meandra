@@ -18,7 +18,7 @@ authors = [{name = "Esther Poniatowski", email = "esther.poniatowski@ens.psl.eu"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 readme = {file = "README.md", content-type = "text/markdown"}
-description = "Workflow orchestration library for modular data analysis pipelines"
+description = "Runs modular data processing pipelines with reproducible configurations."
 keywords = ["workflow-orchestration", "pipeline-orchestration", "data-pipelines", "modular-design"]
 classifiers = [
     "Programming Language :: Python :: 3",
