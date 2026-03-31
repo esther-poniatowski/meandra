@@ -1,53 +1,28 @@
-# Meandra Documentation
+# Meandra
 
-Meandra is a workflow orchestration library for building robust, modular data analysis pipelines.
+Runs modular data processing pipelines with reproducible configurations.
 
 ```{toctree}
 :maxdepth: 2
-:caption: Contents:
+:caption: User Guide
 
-guide/quickstart
+guide/installation
+guide/usage
 guide/concepts
 guide/tutorials
-api/index
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
 architecture/index
+api/index
 ```
 
-## Quick Example
+```{toctree}
+:maxdepth: 1
+:caption: Architecture Decisions
 
-Define a pipeline using decorators:
-
-```python
-from meandra.api import pipeline, node, build_workflow
-
-@pipeline(name="data_pipeline")
-class DataPipeline:
-    @node(outputs=["data"])
-    def load(self, inputs):
-        return {"data": [1, 2, 3, 4, 5]}
-
-    @node(inputs=["data"], outputs=["result"], depends_on=["load"])
-    def process(self, inputs):
-        return {"result": sum(inputs["data"])}
-
-workflow = build_workflow(DataPipeline, validate=True, available_inputs=set())
+adr/adr-template
 ```
-
-Or use the fluent API:
-
-```python
-from meandra.api import step, pipe
-
-workflow = (
-    pipe("data_pipeline")
-    .add(step(load_data).out("data"))
-    .add(step(process).in_("data").out("result").depends_on("load_data"))
-    .build()
-)
-```
-
-## Indices and tables
-
-* {ref}`genindex`
-* {ref}`modindex`
-* {ref}`search`
