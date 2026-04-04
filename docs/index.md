@@ -8,6 +8,8 @@ Runs modular data processing pipelines with reproducible configurations.
 
 guide/installation
 guide/usage
+guide/cli-reference
+guide/configuration
 guide/concepts
 guide/tutorials
 ```
