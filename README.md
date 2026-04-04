@@ -38,6 +38,8 @@ for non-linear, hierarchical workflows with precise parameter control.
   rules and metadata tracking.
 - **Execution orchestration** — resolve task dependencies, track progress, and manage
   failures and recovery.
+- **Reproducible experiments** — rerun experiments with identical configurations and
+  parameter sets.
 
 ---
 
@@ -45,20 +47,33 @@ for non-linear, hierarchical workflows with precise parameter control.
 
 ### Configuration Management
 
-- [ ] **Modular configuration**: Structured, composable YAML configurations with
-  hierarchical merging and runtime overrides.
-- [ ] **Variable interpolation**: Reference variables within configuration files for
-  dynamic parameter resolution.
-- [ ] **Dynamic path rules**: Input/output paths with runtime placeholders.
+- [ ] **Modular configuration**: Define structured, composable YAML configurations
+  with optional JSON conversion.
+- [ ] **Hierarchical merging**: Combine multiple configuration sources with
+  customizable precedence.
+- [ ] **Runtime overrides**: Modify parameters via command-line dot notation or
+  alternate configuration files.
+- [ ] **Variable interpolation**: Reference variables within configuration files to
+  resolve parameters dynamically.
+- [ ] **Dynamic path rules**: Specify input/output paths with runtime placeholders.
 
 ### Workflow Definition and Execution
 
-- [ ] **Modular composition**: Atomic computation nodes, reusable across workflows
-  with nested loops and hierarchical pipelines.
-- [ ] **Parameter sweeping**: Multi-run experiments with complex parameter
+- [ ] **Modular composition**: Define atomic computation nodes, reusable across
+  workflows with nested loops and hierarchical pipelines.
+- [ ] **Parameter sweeping**: Run multi-run experiments with complex parameter
   combinations.
-- [ ] **Dependency resolution**: Automatic task scheduling based on inter-step
-  dependencies; concurrent execution of independent tasks.
+- [ ] **Data catalog**: Automate data loading and saving with customizable path rules
+  and format conversion.
+- [ ] **Execution through aliases**: Launch workflows via aliases with custom parameter
+  sets.
+- [ ] **Execution tracking**: Display real-time task progress and status in the
+  terminal.
+- [ ] **Dependency resolution**: Schedule tasks automatically based on inter-step
+  dependencies.
+- [ ] **Parallel execution**: Run independent tasks concurrently.
+- [ ] **Automated logging**: Configure logging for monitoring and debugging.
+- [ ] **Outputs by run**: Generate output directories for distinct runs automatically.
 - [ ] **Failure recovery**: Resume execution from the last successful step or
   checkpoint.
 - [ ] **Reproducibility**: Rerun previous experiments with consistent configurations.
