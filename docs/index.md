@@ -18,7 +18,7 @@ guide/tutorials
 :maxdepth: 2
 :caption: Reference
 
-architecture/index
+internals/index
 api/index
 ```
 
