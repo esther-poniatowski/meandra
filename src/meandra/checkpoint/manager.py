@@ -3,6 +3,17 @@ meandra.checkpoint.manager
 ==========================
 
 Checkpoint management for workflow resumption.
+
+Classes
+-------
+CheckpointInfo
+    Summary information about a checkpoint.
+Checkpoint
+    A loaded checkpoint with data and metadata.
+ResumePlan
+    Explicit plan describing how a workflow may safely resume.
+CheckpointManager
+    Manage workflow checkpoints for resumption.
 """
 
 from dataclasses import dataclass
@@ -21,7 +32,28 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CheckpointInfo:
-    """Summary information about a checkpoint."""
+    """
+    Summary information about a checkpoint.
+
+    Attributes
+    ----------
+    checkpoint_id : str
+        Unique checkpoint identifier.
+    workflow_name : str
+        Name of the workflow.
+    node_name : str
+        Name of the node that was checkpointed.
+    node_index : int
+        Index of the node in execution order.
+    run_id : str
+        Unique run identifier.
+    timestamp : str
+        Timestamp of the checkpoint.
+    workflow_hash : Optional[str]
+        Hash of the workflow structure at checkpoint time.
+    completed_nodes : tuple[str, ...]
+        Names of nodes completed before this checkpoint.
+    """
 
     checkpoint_id: str
     workflow_name: str
@@ -35,7 +67,20 @@ class CheckpointInfo:
 
 @dataclass
 class Checkpoint:
-    """A loaded checkpoint with data and metadata."""
+    """
+    A loaded checkpoint with data and metadata.
+
+    Attributes
+    ----------
+    info : CheckpointInfo
+        Summary information about the checkpoint.
+    data : Any
+        Node output data.
+    context : Dict[str, Any]
+        Execution context saved with the checkpoint.
+    state : Dict[str, Dict[str, Any]]
+        Workflow state at checkpoint time.
+    """
 
     info: CheckpointInfo
     data: Any
@@ -45,7 +90,22 @@ class Checkpoint:
 
 @dataclass(frozen=True)
 class ResumePlan:
-    """Explicit plan describing how a workflow may safely resume."""
+    """
+    Explicit plan describing how a workflow may safely resume.
+
+    Attributes
+    ----------
+    checkpoint_id : str
+        Identifier of the checkpoint to resume from.
+    run_id : str
+        Run identifier for the resumed execution.
+    completed_nodes : tuple[str, ...]
+        Names of nodes already completed.
+    context : Dict[str, Any]
+        Execution context to restore.
+    state : Dict[str, Dict[str, Any]]
+        Workflow state to restore.
+    """
 
     checkpoint_id: str
     run_id: str
@@ -62,6 +122,11 @@ class CheckpointManager:
     loading, and managing checkpoints during workflow execution.
 
     Parameters
+    ----------
+    storage : CheckpointStorage
+        Storage backend for checkpoints.
+
+    Attributes
     ----------
     storage : CheckpointStorage
         Storage backend for checkpoints.
@@ -101,7 +166,7 @@ class CheckpointManager:
         Returns
         -------
         CheckpointManager
-            Manager with FileSystemStorage backend.
+            Manager with ``FileSystemStorage`` backend.
         """
         storage = FileSystemStorage(base_dir, retention=retention)
         return cls(storage)
@@ -135,6 +200,12 @@ class CheckpointManager:
             Unique run identifier.
         context : Optional[Dict[str, Any]]
             Full execution context to save for resumption.
+        workflow_hash : Optional[str]
+            Hash of the workflow structure for compatibility checks.
+        workflow_state : Optional[Dict[str, Dict[str, Any]]]
+            Full workflow state to persist.
+        completed_nodes : Optional[List[str]]
+            Names of nodes completed so far.
 
         Returns
         -------
@@ -312,7 +383,20 @@ class CheckpointManager:
         return count
 
     def build_resume_plan(self, workflow: "Workflow", checkpoint: Checkpoint) -> ResumePlan:
-        """Validate checkpoint compatibility and build an explicit resume plan."""
+        """Validate checkpoint compatibility and build an explicit resume plan.
+
+        Parameters
+        ----------
+        workflow : Workflow
+            The workflow to resume.
+        checkpoint : Checkpoint
+            The checkpoint to resume from.
+
+        Returns
+        -------
+        ResumePlan
+            Plan describing how the workflow may safely resume.
+        """
         workflow_hash = workflow.structure_hash()
         if checkpoint.info.workflow_hash != workflow_hash:
             raise CheckpointError(

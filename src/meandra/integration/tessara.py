@@ -38,6 +38,13 @@ class TessaraNodeAdapter:
     - Creating parameter-aware node wrappers
     - Supporting both explicit parameter binding and automatic discovery
 
+    Parameters
+    ----------
+    params : ParameterSet
+        Tessara parameter set containing parameters to inject.
+    validate : bool, optional
+        Whether to validate parameter values before injection.
+
     Attributes
     ----------
     params : ParameterSet
@@ -59,14 +66,7 @@ class TessaraNodeAdapter:
     """
 
     def __init__(self, params: "ParameterSet", validate: bool = False) -> None:
-        """
-        Initialize the adapter with a parameter set.
-
-        Parameters
-        ----------
-        params : ParameterSet
-            Tessara parameter set containing parameters to inject.
-        """
+        """Initialize the adapter with a parameter set."""
         self.params = params
         self.validate = validate
 
@@ -74,7 +74,10 @@ class TessaraNodeAdapter:
         """
         Iterate over parameters with dotted paths.
 
-        Returns tuples of (path, Param-like object).
+        Returns
+        -------
+        Iterable[Tuple[str, Any]]
+            Tuples of (path, Param-like object).
         """
         return self._iter_params(self.params)
 
@@ -96,7 +99,7 @@ class TessaraNodeAdapter:
 
         Parameters
         ----------
-        names : List[str], optional
+        names : Optional[List[str]]
             Specific parameter names to extract. If None, extracts all.
 
         Returns
@@ -149,11 +152,15 @@ class TessaraNodeAdapter:
 
         Parameters
         ----------
-        func : Callable
+        func : Callable[..., Any]
             Function to wrap. Should accept inputs dict plus parameter kwargs.
-        param_names : List[str], optional
+        param_names : Optional[List[str]]
             Specific parameters to inject. If None, injects all matching
             function signature parameters.
+        param_aliases : Optional[Dict[str, str]]
+            Mapping of parameter names to function argument aliases.
+        validate : Optional[bool]
+            Whether to validate parameters. Overrides instance setting.
 
         Returns
         -------
@@ -232,9 +239,13 @@ class TessaraNodeAdapter:
         ----------
         node : Node
             The node to adapt.
-        param_names : List[str], optional
+        param_names : Optional[List[str]]
             Specific parameters to inject. If None, auto-discovers from
             function signature.
+        param_aliases : Optional[Dict[str, str]]
+            Mapping of parameter names to function argument aliases.
+        validate : Optional[bool]
+            Whether to validate parameters. Overrides instance setting.
 
         Returns
         -------
@@ -258,9 +269,13 @@ class TessaraNodeAdapter:
         ----------
         workflow : Workflow
             The workflow to adapt.
-        node_params : Dict[str, List[str]], optional
+        node_params : Optional[Dict[str, List[str]]]
             Mapping of node names to parameter names to inject.
             If None, auto-discovers for all nodes.
+        node_aliases : Optional[Dict[str, Dict[str, str]]]
+            Mapping of node names to parameter alias dicts.
+        validate : Optional[bool]
+            Whether to validate parameters. Overrides instance setting.
 
         Returns
         -------
@@ -277,11 +292,35 @@ class TessaraNodeAdapter:
         return workflow.transform_nodes(transform)
 
     def transform_node(self, node: "Node") -> "Node":
-        """Implement the stable node-transformer seam."""
+        """
+        Implement the stable node-transformer seam.
+
+        Parameters
+        ----------
+        node : Node
+            The node to transform.
+
+        Returns
+        -------
+        Node
+            Transformed node with injected parameters.
+        """
         return self.bind_to_node(node)
 
     def transform_workflow(self, workflow: "Workflow") -> "Workflow":
-        """Implement the stable workflow-transformer seam."""
+        """
+        Implement the stable workflow-transformer seam.
+
+        Parameters
+        ----------
+        workflow : Workflow
+            The workflow to transform.
+
+        Returns
+        -------
+        Workflow
+            Transformed workflow with injected parameters.
+        """
         return self.adapt_workflow(workflow)
 
 
@@ -291,6 +330,13 @@ class SweepOrchestrator:
 
     Automates running the same workflow multiple times with different
     parameter configurations, collecting results from all runs.
+
+    Parameters
+    ----------
+    orchestrator : Orchestrator
+        Meandra orchestrator for workflow execution.
+    sweeper : ParamSweeper
+        Tessara parameter sweeper for generating combinations.
 
     Attributes
     ----------
@@ -318,16 +364,7 @@ class SweepOrchestrator:
         orchestrator: "Orchestrator",
         sweeper: "ParamSweeper",
     ) -> None:
-        """
-        Initialize the sweep orchestrator.
-
-        Parameters
-        ----------
-        orchestrator : Orchestrator
-            Meandra orchestrator for workflow execution.
-        sweeper : ParamSweeper
-            Tessara parameter sweeper for generating combinations.
-        """
+        """Initialize the sweep orchestrator."""
         self.orchestrator = orchestrator
         self.sweeper = sweeper
 
@@ -345,11 +382,11 @@ class SweepOrchestrator:
         ----------
         workflow : Workflow
             The workflow to execute.
-        inputs : Dict[str, Any], optional
+        inputs : Optional[Dict[str, Any]]
             Initial inputs for the workflow.
-        node_params : Dict[str, List[str]], optional
+        node_params : Optional[Dict[str, List[str]]]
             Mapping of node names to parameter names for injection.
-        on_run_complete : Callable, optional
+        on_run_complete : Optional[Callable[[int, Dict[str, Any], Dict[str, Any]], None]]
             Callback called after each run with (index, params_dict, results).
 
         Returns
@@ -404,5 +441,12 @@ class SweepOrchestrator:
         return results
 
     def __len__(self) -> int:
-        """Return the total number of parameter combinations."""
+        """
+        Return the total number of parameter combinations.
+
+        Returns
+        -------
+        int
+            Number of parameter combinations in the sweeper.
+        """
         return len(self.sweeper)

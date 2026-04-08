@@ -9,6 +9,11 @@ Provides commands for:
 - Validating workflow configurations
 - Inspecting workflow structure
 
+Notes
+-----
+This module is the entry point for the ``meandra`` command-line tool,
+powered by Typer.
+
 Examples
 --------
 Run a pipeline:
@@ -22,6 +27,17 @@ Validate a configuration:
 Show workflow info:
 
     meandra info
+
+Functions
+---------
+cli_info
+    Display version and platform diagnostics.
+cli_run
+    Run a workflow from a decorated pipeline class.
+cli_validate
+    Validate a configuration file.
+cli_graph
+    Display or export the workflow graph.
 """
 
 import importlib
@@ -54,7 +70,7 @@ def _import_pipeline(module_path: str) -> Type[Any]:
 
     Returns
     -------
-    Type
+    Type[Any]
         The imported pipeline class.
 
     Raises
@@ -181,7 +197,22 @@ def cli_run(
     """
     Run a workflow from a decorated pipeline class.
 
-    Examples:
+    Parameters
+    ----------
+    pipeline : str
+        Pipeline to run in format 'module:ClassName'.
+    config : Optional[Path]
+        Path to configuration file (JSON or YAML).
+    param : Optional[list[str]]
+        Override parameters in format 'key=value'.
+    output : Optional[Path]
+        Path to save workflow outputs (JSON).
+    verbose : bool
+        Enable verbose output.
+
+    Examples
+    --------
+    ::
 
         meandra run mymodule:MyPipeline
 
@@ -291,7 +322,18 @@ def cli_validate(
     If --pipeline is provided, validates the config against the pipeline's
     expected inputs.
 
-    Examples:
+    Parameters
+    ----------
+    config : Path
+        Path to configuration file to validate.
+    pipeline : Optional[str]
+        Pipeline to validate against in format 'module:ClassName'.
+    verbose : bool
+        Enable verbose output.
+
+    Examples
+    --------
+    ::
 
         meandra validate config.yaml
 
@@ -369,7 +411,16 @@ def cli_graph(
 
     Shows nodes and their dependencies.
 
-    Examples:
+    Parameters
+    ----------
+    pipeline : str
+        Pipeline to graph in format 'module:ClassName'.
+    output : Optional[Path]
+        Path to save graph (PNG, SVG, or DOT format based on extension).
+
+    Examples
+    --------
+    ::
 
         meandra graph mymodule:MyPipeline
 
@@ -461,7 +512,14 @@ def main_callback(
         help="Show the package version and exit.",
     ),
 ) -> None:
-    """Workflow orchestration for data analysis pipelines."""
+    """
+    Workflow orchestration for data analysis pipelines.
+
+    Parameters
+    ----------
+    version : bool
+        Show the package version and exit.
+    """
     if version:
         typer.echo(f"meandra {__version__}")
         raise typer.Exit()

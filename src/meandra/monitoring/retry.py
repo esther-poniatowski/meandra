@@ -3,6 +3,20 @@ meandra.monitoring.retry
 ========================
 
 Retry utilities with exponential backoff.
+
+Classes
+-------
+RetryConfig
+    Configuration for retry behavior.
+RetryContext
+    Context manager for retryable code blocks.
+
+Functions
+---------
+retry
+    Decorator that retries a function with exponential backoff.
+execute_with_retry
+    Execute a function with retry logic.
 """
 
 import logging
@@ -101,13 +115,13 @@ def retry(
     jitter : bool
         Whether to add random jitter to delays. Default True.
     retryable_exceptions : Tuple[Type[Exception], ...]
-        Exception types that should trigger a retry. Default (Exception,).
+        Exception types that should trigger a retry. Default ``(Exception,)``.
     on_retry : Optional[Callable[[int, Exception, float], None]]
         Callback called before each retry with (attempt, exception, delay).
 
     Returns
     -------
-    Callable
+    Callable[[Callable[..., T]], Callable[..., T]]
         Decorated function with retry behavior.
 
     Examples
@@ -153,14 +167,16 @@ def execute_with_retry(
 
     Parameters
     ----------
-    func : Callable
+    func : Callable[..., T]
         Function to execute.
     config : RetryConfig
         Retry configuration.
     on_retry : Optional[Callable[[int, Exception, float], None]]
         Callback called before each retry.
-    *args, **kwargs
-        Arguments to pass to the function.
+    *args : Any
+        Positional arguments to pass to the function.
+    **kwargs : Any
+        Keyword arguments to pass to the function.
 
     Returns
     -------
@@ -219,6 +235,16 @@ class RetryContext:
     """
     Context manager for retryable code blocks.
 
+    Parameters
+    ----------
+    config : RetryConfig
+        Retry configuration governing attempts and delays.
+
+    Attributes
+    ----------
+    config : RetryConfig
+        Retry configuration governing attempts and delays.
+
     Examples
     --------
     >>> config = RetryConfig(max_attempts=3)
@@ -270,7 +296,13 @@ class RetryContext:
         return self._attempt
 
     def record_failure(self, error: Exception) -> None:
-        """Record a failure and wait before next attempt."""
+        """Record a failure and wait before next attempt.
+
+        Parameters
+        ----------
+        error : Exception
+            The exception that caused the failure.
+        """
         self._last_error = error
 
         if self._attempt >= self.config.max_attempts:

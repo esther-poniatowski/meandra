@@ -31,6 +31,30 @@ Decorating a class to create a pipeline:
 ...     @node(inputs=["data"], outputs=["result"], depends_on=["load"])
 ...     def process(self, inputs):
 ...         return {"result": sum(inputs["data"])}
+
+Classes
+-------
+NodeSpec
+    Specification for a node created by the @node decorator.
+PipelineSpec
+    Specification for a pipeline created by the @pipeline decorator.
+
+Functions
+---------
+node
+    Decorator to mark a function as a workflow node.
+get_node_spec
+    Get the NodeSpec attached to a decorated function.
+is_node
+    Check if a function is decorated with @node.
+pipeline
+    Decorator to mark a class as a workflow pipeline.
+get_pipeline_spec
+    Get the PipelineSpec attached to a decorated class.
+is_pipeline
+    Check if a class is decorated with @pipeline.
+build_workflow
+    Build a Workflow from a @pipeline decorated class.
 """
 
 from dataclasses import dataclass, field
@@ -134,6 +158,11 @@ class NodeSpec:
         Validate that the function signature is compatible with node inputs.
 
         Emits a warning if declared inputs are not in function parameters.
+
+        Warns
+        -----
+        UserWarning
+            If declared inputs are not present in the function signature.
         """
         sig = inspect.signature(self.func)
         params = set(sig.parameters.keys())
@@ -197,7 +226,7 @@ def node(
 
     Parameters
     ----------
-    func : Callable, optional
+    func : Optional[F], optional
         The function to decorate (when used without parentheses).
     name : str, optional
         Node name. Defaults to function name.
@@ -211,14 +240,14 @@ def node(
         Whether the node supports checkpointing. Default False.
     accepts_context : bool
         Whether the node receives full context. Default False.
-    input_contract : Callable, optional
+    input_contract : Optional[Callable[[Dict[str, Any]], None]]
         Input validation function.
-    output_contract : Callable, optional
+    output_contract : Optional[Callable[[Dict[str, Any]], None]]
         Output validation function.
 
     Returns
     -------
-    Callable
+    Union[F, Callable[[F], F]]
         The decorated function with node specification attached.
     """
 
@@ -256,7 +285,7 @@ def get_node_spec(func: Callable[..., Any]) -> Optional[NodeSpec]:
 
     Parameters
     ----------
-    func : Callable
+    func : Callable[..., Any]
         Function potentially decorated with @node.
 
     Returns
@@ -273,7 +302,7 @@ def is_node(func: Callable[..., Any]) -> bool:
 
     Parameters
     ----------
-    func : Callable
+    func : Callable[..., Any]
         Function to check.
 
     Returns
@@ -317,6 +346,10 @@ class PipelineSpec:
         ----------
         instance : Optional[Any]
             Instance to bind methods to. If None, creates a new instance.
+        validate : bool
+            Whether to validate the workflow after building. Default False.
+        available_inputs : Optional[set[str]]
+            Set of input names available from outside the pipeline.
 
         Returns
         -------
@@ -350,7 +383,14 @@ class PipelineSpec:
         return workflow
 
     def required_inputs(self) -> set[str]:
-        """Return workflow inputs expected from outside the pipeline."""
+        """
+        Return workflow inputs expected from outside the pipeline.
+
+        Returns
+        -------
+        set[str]
+            Input names not produced by any node in the pipeline.
+        """
         produced: set[str] = set()
         required: set[str] = set()
         for spec in self.node_specs:
@@ -387,14 +427,14 @@ def pipeline(
 
     Parameters
     ----------
-    cls : Type, optional
+    cls : Optional[Type[Any]]
         The class to decorate (when used without parentheses).
     name : str, optional
         Pipeline name. Defaults to class name.
 
     Returns
     -------
-    Type
+    Union[Type[Any], Callable[[Type[Any]], Type[Any]]]
         The decorated class with pipeline specification attached.
     """
 
@@ -445,7 +485,7 @@ def get_pipeline_spec(cls: Type[Any]) -> Optional[PipelineSpec]:
 
     Parameters
     ----------
-    cls : Type
+    cls : Type[Any]
         Class potentially decorated with @pipeline.
 
     Returns
@@ -462,7 +502,7 @@ def is_pipeline(cls: Type[Any]) -> bool:
 
     Parameters
     ----------
-    cls : Type
+    cls : Type[Any]
         Class to check.
 
     Returns
@@ -487,10 +527,18 @@ def build_workflow(
 
     Parameters
     ----------
-    pipeline_cls : Type
+    pipeline_cls : Type[Any]
         Class decorated with @pipeline.
     instance : Optional[Any]
         Instance to use. If None, creates a new instance.
+    validate : bool
+        Whether to validate the workflow after building. Default False.
+    available_inputs : Optional[set[str]]
+        Set of input names available from outside the pipeline.
+    init_args : Optional[tuple[Any, ...]]
+        Positional arguments for class instantiation.
+    init_kwargs : Optional[Dict[str, Any]]
+        Keyword arguments for class instantiation.
 
     Returns
     -------

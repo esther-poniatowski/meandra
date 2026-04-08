@@ -3,6 +3,13 @@ meandra.scheduling.scheduler
 ============================
 
 Workflow scheduling and dependency resolution.
+
+Classes
+-------
+Scheduler
+    Abstract base class for scheduling tasks within a workflow.
+DAGScheduler
+    Schedule workflow execution using topological sort.
 """
 
 from abc import ABC, abstractmethod
@@ -50,17 +57,17 @@ class DAGScheduler(Scheduler):
     execution layers. Nodes within the same layer have no dependencies
     on each other and can execute concurrently.
 
+    Notes
+    -----
+    The scheduler detects circular dependencies and raises
+    DependencyResolutionError if found.
+
     Examples
     --------
     >>> scheduler = DAGScheduler()
     >>> layers = scheduler.resolve(workflow)
     >>> for i, layer in enumerate(layers):
     ...     print(f"Layer {i}: {[n.name for n in layer]}")
-
-    Notes
-    -----
-    The scheduler detects circular dependencies and raises
-    DependencyResolutionError if found.
     """
 
     def resolve(self, workflow: Workflow) -> List[List[Node]]:

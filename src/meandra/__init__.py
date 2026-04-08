@@ -187,5 +187,12 @@ __all__ = [
 
 
 def info() -> str:
-    """Format diagnostic information on package and platform."""
+    """
+    Format diagnostic information on package and platform.
+
+    Returns
+    -------
+    str
+        A string with the package name, version, OS, and Python version.
+    """
     return f"{__package__} {__version__} | Platform: {platform.system()} Python {platform.python_version()}"

@@ -3,6 +3,15 @@ meandra.core.workflow
 =====================
 
 Workflow definition and management.
+
+Classes
+-------
+ValidationResult
+    Result of workflow validation.
+Workflow
+    Define a workflow composed of multiple processing nodes.
+WorkflowModel
+    Canonical workflow representation.
 """
 
 from dataclasses import dataclass, field
@@ -17,14 +26,30 @@ from meandra.core.graph import topological_layers
 
 @dataclass
 class ValidationResult:
-    """Result of workflow validation."""
+    """Result of workflow validation.
+
+    Attributes
+    ----------
+    valid : bool
+        Whether the workflow passed validation.
+    errors : List[str]
+        Validation errors found.
+    warnings : List[str]
+        Validation warnings found.
+    """
 
     valid: bool
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
 
     def raise_if_invalid(self, workflow_name: str = "") -> None:
-        """Raise ValidationError if validation failed."""
+        """Raise ValidationError if validation failed.
+
+        Parameters
+        ----------
+        workflow_name : str
+            Name of the workflow for the error message.
+        """
         if not self.valid:
             raise ValidationError(
                 f"Workflow validation failed with {len(self.errors)} error(s)",
@@ -111,15 +136,38 @@ class Workflow:
         return self.nodes[name]
 
     def __iter__(self) -> Iterator[Node]:
-        """Iterate over nodes in the workflow."""
+        """Iterate over nodes in the workflow.
+
+        Returns
+        -------
+        Iterator[Node]
+            Iterator over the workflow nodes.
+        """
         return iter(self.nodes.values())
 
     def __len__(self) -> int:
-        """Return number of nodes in the workflow."""
+        """Return number of nodes in the workflow.
+
+        Returns
+        -------
+        int
+            Number of nodes in the workflow.
+        """
         return len(self.nodes)
 
     def __contains__(self, name: str) -> bool:
-        """Check if a node exists by name."""
+        """Check if a node exists by name.
+
+        Parameters
+        ----------
+        name : str
+            Node name to check.
+
+        Returns
+        -------
+        bool
+            True if the node exists in the workflow.
+        """
         return name in self.nodes
 
     def validate(
@@ -217,6 +265,11 @@ class Workflow:
         Compute a stable hash of the workflow structure.
 
         Includes node names, dependencies, inputs, outputs, and flags.
+
+        Returns
+        -------
+        str
+            SHA-256 hex digest of the workflow structure.
         """
         payload = {
             "name": self.name,
@@ -236,7 +289,20 @@ class Workflow:
         return sha256(encoded).hexdigest()
 
     def _allowed_inputs_for_node(self, node: Node, available_inputs: Set[str]) -> Set[str]:
-        """Compute the allowed inputs for a node based on dependencies."""
+        """Compute the allowed inputs for a node based on dependencies.
+
+        Parameters
+        ----------
+        node : Node
+            Node to compute allowed inputs for.
+        available_inputs : Set[str]
+            Inputs available from outside the workflow.
+
+        Returns
+        -------
+        Set[str]
+            Union of available inputs and dependency outputs.
+        """
         allowed = set(available_inputs)
         for dep_name in node.dependencies:
             dep = self.nodes.get(dep_name)
@@ -245,7 +311,13 @@ class Workflow:
         return allowed
 
     def _dependents_map(self) -> Dict[str, List[str]]:
-        """Build a map of node name to its dependents."""
+        """Build a map of node name to its dependents.
+
+        Returns
+        -------
+        Dict[str, List[str]]
+            Mapping of node name to list of dependent node names.
+        """
         dependents: Dict[str, List[str]] = {name: [] for name in self.nodes}
         for node in self.nodes.values():
             for dep in node.dependencies:
@@ -281,7 +353,13 @@ class Workflow:
         )
 
     def required_inputs(self) -> Set[str]:
-        """Return workflow inputs that must come from outside the workflow."""
+        """Return workflow inputs that must come from outside the workflow.
+
+        Returns
+        -------
+        Set[str]
+            Input keys not produced by any node in the workflow.
+        """
         required: Set[str] = set()
         produced: Set[str] = set()
         for layer in topological_layers(self.nodes, {name: node.dependencies for name, node in self.nodes.items()}):
@@ -293,14 +371,36 @@ class Workflow:
         return required
 
     def clone_with_nodes(self, nodes: List[Node]) -> "Workflow":
-        """Create a workflow copy from a new node collection."""
+        """Create a workflow copy from a new node collection.
+
+        Parameters
+        ----------
+        nodes : List[Node]
+            Nodes to include in the cloned workflow.
+
+        Returns
+        -------
+        Workflow
+            New workflow with the given nodes.
+        """
         cloned = Workflow(self.name)
         for node in nodes:
             cloned.add_node(node)
         return cloned
 
     def transform_nodes(self, transformer: Callable[[Node], Node]) -> "Workflow":
-        """Apply a node transformer across the workflow through a stable extension seam."""
+        """Apply a node transformer across the workflow through a stable extension seam.
+
+        Parameters
+        ----------
+        transformer : Callable[[Node], Node]
+            Function that transforms a node into a new node.
+
+        Returns
+        -------
+        Workflow
+            New workflow with transformed nodes.
+        """
         return self.clone_with_nodes([transformer(node) for node in self.nodes.values()])
 
 

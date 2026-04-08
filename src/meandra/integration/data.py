@@ -38,6 +38,13 @@ class DataStructureIOHandler(IOHandler):
     Provides seamless integration between Meandra workflows and Morpha's
     type-safe data persistence layer.
 
+    Parameters
+    ----------
+    saver_cls : Optional[Type[Saver]]
+        Morpha Saver class for writing. If None, uses auto-detection.
+    loader_cls : Optional[Type[Loader]]
+        Morpha Loader class for reading. If None, uses auto-detection.
+
     Attributes
     ----------
     saver_cls : Type[Saver]
@@ -73,16 +80,7 @@ class DataStructureIOHandler(IOHandler):
         saver_cls: Optional[Type["Saver"]] = None,
         loader_cls: Optional[Type["Loader"]] = None,
     ) -> None:
-        """
-        Initialize with Morpha Saver and Loader classes.
-
-        Parameters
-        ----------
-        saver_cls : Type[Saver], optional
-            Morpha Saver class for writing. If None, uses auto-detection.
-        loader_cls : Type[Loader], optional
-            Morpha Loader class for reading. If None, uses auto-detection.
-        """
+        """Initialize with Morpha Saver and Loader classes."""
         self.saver_cls = saver_cls
         self.loader_cls = loader_cls
 
@@ -142,7 +140,18 @@ class DataStructureIOHandler(IOHandler):
         saver.save(data)
 
     def _get_loader_for_path(self, path: Path) -> Optional[Type["Loader"]]:
-        """Get appropriate Loader class for file extension."""
+        """Get appropriate Loader class for file extension.
+
+        Parameters
+        ----------
+        path : Path
+            Path to the file.
+
+        Returns
+        -------
+        Optional[Type[Loader]]
+            Loader class for the file extension, or None if unsupported.
+        """
         try:
             from morpha.io import loaders as morpha_loaders
             ext = path.suffix.lower()
@@ -159,7 +168,18 @@ class DataStructureIOHandler(IOHandler):
             return None
 
     def _get_saver_for_path(self, path: Path) -> Optional[Type["Saver"]]:
-        """Get appropriate Saver class for file extension."""
+        """Get appropriate Saver class for file extension.
+
+        Parameters
+        ----------
+        path : Path
+            Path to the file.
+
+        Returns
+        -------
+        Optional[Type[Saver]]
+            Saver class for the file extension, or None if unsupported.
+        """
         try:
             from morpha.io import savers as morpha_savers
             ext = path.suffix.lower()
@@ -177,7 +197,17 @@ class DataStructureIOHandler(IOHandler):
 
     @classmethod
     def register_extension(cls, extension: str, saver_name: str, loader_name: str) -> None:
-        """Register a custom Saver/Loader by extension."""
+        """Register a custom Saver/Loader by extension.
+
+        Parameters
+        ----------
+        extension : str
+            File extension to register (with or without leading dot).
+        saver_name : str
+            Name of the Morpha Saver class.
+        loader_name : str
+            Name of the Morpha Loader class.
+        """
         if not extension.startswith("."):
             extension = f".{extension}"
         cls._EXTENSION_MAP[extension.lower()] = IOBackendDescriptor(
@@ -190,7 +220,18 @@ class DataStructureIOHandler(IOHandler):
 
     @classmethod
     def supports(cls, path: Union[str, Path]) -> bool:
-        """Check if this handler supports the given file path."""
+        """Check if this handler supports the given file path.
+
+        Parameters
+        ----------
+        path : Union[str, Path]
+            Path to the file.
+
+        Returns
+        -------
+        bool
+            True if the file extension is supported.
+        """
         suffix = Path(path).suffix.lower()
         return suffix in cls.EXTENSIONS
 
@@ -214,13 +255,17 @@ def create_typed_node(
     ----------
     name : str
         Node name.
-    func : Callable
+    func : Callable[[Dict[str, Any]], Any]
         Node function.
-    input_types : Dict[str, Type], optional
+    input_types : Optional[Dict[str, Type]]
         Mapping of input names to expected types.
-    output_types : Dict[str, Type], optional
+    output_types : Optional[Dict[str, Type]]
         Mapping of output names to expected types.
-    **kwargs
+    allow_missing_inputs : bool
+        If True, skip validation for missing input keys.
+    allow_missing_outputs : bool
+        If True, skip validation for missing output keys.
+    **kwargs : Any
         Additional arguments passed to Node constructor.
 
     Returns

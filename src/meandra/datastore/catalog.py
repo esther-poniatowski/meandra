@@ -3,6 +3,13 @@ meandra.datastore.catalog
 =========================
 
 Data catalog for named dataset management.
+
+Classes
+-------
+DatasetEntry
+    Entry in the data catalog.
+DataCatalog
+    Named dataset registry with path templating.
 """
 
 from dataclasses import dataclass, field
@@ -21,7 +28,22 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DatasetEntry:
-    """Entry in the data catalog."""
+    """
+    Entry in the data catalog.
+
+    Attributes
+    ----------
+    name : str
+        Logical name for the dataset.
+    path_template : str
+        Path template with optional placeholders.
+    handler : Optional[IOHandler]
+        Handler for this dataset.
+    description : str
+        Description of the dataset.
+    metadata : Dict[str, Any]
+        Additional metadata for the entry.
+    """
 
     name: str
     path_template: str
@@ -37,7 +59,7 @@ class DatasetEntry:
 
         Parameters
         ----------
-        **kwargs
+        **kwargs : Any
             Values to substitute into the path template.
 
         Returns
@@ -73,6 +95,11 @@ class DatasetEntry:
         Return required placeholders in the path template.
 
         Placeholders with defaults (date, timestamp) are excluded.
+
+        Returns
+        -------
+        Set[str]
+            Set of required placeholder keys.
         """
         formatter = string.Formatter()
         fields = {field for _, field, _, _ in formatter.parse(self.path_template) if field}
@@ -90,7 +117,14 @@ class DataCatalog:
 
     Parameters
     ----------
-    base_dir : str or Path, optional
+    base_dir : Optional[str | Path]
+        Base directory for relative paths.
+    registry : Optional[HandlerRegistry]
+        Handler registry for format detection.
+
+    Attributes
+    ----------
+    base_dir : Path
         Base directory for relative paths.
 
     Examples
@@ -142,7 +176,7 @@ class DataCatalog:
             Handler for this dataset. If None, inferred from extension.
         description : str
             Optional description of the dataset.
-        **metadata
+        **metadata : Any
             Additional metadata to store with the entry.
 
         Raises
@@ -211,7 +245,7 @@ class DataCatalog:
         ----------
         name : str
             Name of the dataset.
-        **kwargs
+        **kwargs : Any
             Values for path template placeholders.
 
         Returns
@@ -223,7 +257,21 @@ class DataCatalog:
         return entry.resolve_path(**kwargs)
 
     def _get_handler(self, entry: DatasetEntry, path: Path) -> IOHandler:
-        """Get handler for an entry, inferring from path if not specified."""
+        """
+        Get handler for an entry, inferring from path if not specified.
+
+        Parameters
+        ----------
+        entry : DatasetEntry
+            The dataset entry.
+        path : Path
+            Resolved file path.
+
+        Returns
+        -------
+        IOHandler
+            Handler for the dataset.
+        """
         if entry.handler is not None:
             return entry.handler
         return self._registry.get_handler(path)
@@ -238,7 +286,7 @@ class DataCatalog:
             Name of the dataset.
         data : Any
             Data to save.
-        **kwargs
+        **kwargs : Any
             Values for path template placeholders.
 
         Returns
@@ -265,7 +313,7 @@ class DataCatalog:
         ----------
         name : str
             Name of the dataset.
-        **kwargs
+        **kwargs : Any
             Values for path template placeholders.
 
         Returns
@@ -289,7 +337,7 @@ class DataCatalog:
         ----------
         name : str
             Name of the dataset.
-        **kwargs
+        **kwargs : Any
             Values for path template placeholders.
 
         Returns
@@ -334,9 +382,28 @@ class DataCatalog:
         return {entry.name: entry.required_placeholders() for entry in self._entries.values()}
 
     def __contains__(self, name: str) -> bool:
-        """Check if a dataset is registered."""
+        """
+        Check if a dataset is registered.
+
+        Parameters
+        ----------
+        name : str
+            Name of the dataset.
+
+        Returns
+        -------
+        bool
+            True if the dataset is registered.
+        """
         return name in self._entries
 
     def __len__(self) -> int:
-        """Return number of registered datasets."""
+        """
+        Return number of registered datasets.
+
+        Returns
+        -------
+        int
+            Number of registered datasets.
+        """
         return len(self._entries)

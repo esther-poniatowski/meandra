@@ -3,6 +3,13 @@ meandra.monitoring.progress
 ===========================
 
 Progress tracking for workflow execution.
+
+Classes
+-------
+NodeProgress
+    Progress information for a single node.
+ProgressTracker
+    Track progress of workflow execution.
 """
 
 import logging
@@ -22,7 +29,21 @@ NodeStatus = NodeState
 
 @dataclass
 class NodeProgress:
-    """Progress information for a single node."""
+    """Progress information for a single node.
+
+    Attributes
+    ----------
+    name : str
+        Name of the node.
+    status : NodeStatus
+        Current execution status of the node.
+    start_time : float or None
+        Timestamp when the node started executing.
+    end_time : float or None
+        Timestamp when the node finished executing.
+    error : str or None
+        Error message if the node failed.
+    """
 
     name: str
     status: NodeStatus = NodeStatus.PENDING
@@ -32,7 +53,13 @@ class NodeProgress:
 
     @property
     def duration_seconds(self) -> Optional[float]:
-        """Return execution duration in seconds, if completed."""
+        """Return execution duration in seconds, if completed.
+
+        Returns
+        -------
+        float or None
+            Duration in seconds, or None if the node has not started.
+        """
         if self.start_time is None:
             return None
         end = self.end_time or time.time()
@@ -77,7 +104,13 @@ class ProgressTracker:
 
     @property
     def completed_count(self) -> int:
-        """Return number of completed nodes."""
+        """Return number of completed nodes.
+
+        Returns
+        -------
+        int
+            Count of nodes with completed or skipped status.
+        """
         return sum(
             1 for n in self.nodes.values()
             if n.status in (NodeStatus.COMPLETED, NodeStatus.SKIPPED)
@@ -85,24 +118,48 @@ class ProgressTracker:
 
     @property
     def failed_count(self) -> int:
-        """Return number of failed nodes."""
+        """Return number of failed nodes.
+
+        Returns
+        -------
+        int
+            Count of nodes with failed status.
+        """
         return sum(1 for n in self.nodes.values() if n.status == NodeStatus.FAILED)
 
     @property
     def running_count(self) -> int:
-        """Return number of currently running nodes."""
+        """Return number of currently running nodes.
+
+        Returns
+        -------
+        int
+            Count of nodes with running status.
+        """
         return sum(1 for n in self.nodes.values() if n.status == NodeStatus.RUNNING)
 
     @property
     def percentage(self) -> float:
-        """Return completion percentage (0-100)."""
+        """Return completion percentage (0-100).
+
+        Returns
+        -------
+        float
+            Completion percentage from 0 to 100.
+        """
         if self.total_nodes == 0:
             return 100.0
         return (self.completed_count / self.total_nodes) * 100
 
     @property
     def elapsed_seconds(self) -> float:
-        """Return elapsed time since start in seconds."""
+        """Return elapsed time since start in seconds.
+
+        Returns
+        -------
+        float
+            Elapsed time in seconds since the workflow started.
+        """
         if self.start_time is None:
             return 0.0
         end = self.end_time or time.time()
@@ -110,15 +167,33 @@ class ProgressTracker:
 
     @property
     def is_complete(self) -> bool:
-        """Return True if all nodes have been processed."""
+        """Return True if all nodes have been processed.
+
+        Returns
+        -------
+        bool
+            True if all nodes are completed or failed.
+        """
         return self.completed_count + self.failed_count >= self.total_nodes
 
     def add_callback(self, callback: Callable[["ProgressTracker"], None]) -> None:
-        """Register a callback to be called on progress updates."""
+        """Register a callback to be called on progress updates.
+
+        Parameters
+        ----------
+        callback : Callable[[ProgressTracker], None]
+            Function to invoke on each progress update.
+        """
         self.callbacks.append(callback)
 
     def remove_callback(self, callback: Callable[["ProgressTracker"], None]) -> None:
-        """Remove a registered callback."""
+        """Remove a registered callback.
+
+        Parameters
+        ----------
+        callback : Callable[[ProgressTracker], None]
+            Function to remove from the callback list.
+        """
         if callback in self.callbacks:
             self.callbacks.remove(callback)
 
@@ -131,7 +206,13 @@ class ProgressTracker:
                 logger.warning(f"Progress callback failed: {e}")
 
     def start_node(self, node_name: str) -> None:
-        """Mark a node as running."""
+        """Mark a node as running.
+
+        Parameters
+        ----------
+        node_name : str
+            Name of the node to start.
+        """
         self.nodes[node_name] = NodeProgress(
             name=node_name,
             status=NodeStatus.RUNNING,
@@ -143,7 +224,15 @@ class ProgressTracker:
     def complete_node(
         self, node_name: str, outputs: Optional[Dict[str, Any]] = None
     ) -> None:
-        """Mark a node as completed."""
+        """Mark a node as completed.
+
+        Parameters
+        ----------
+        node_name : str
+            Name of the node to mark as completed.
+        outputs : Optional[Dict[str, Any]]
+            Output values produced by the node.
+        """
         if node_name in self.nodes:
             self.nodes[node_name].status = NodeStatus.COMPLETED
             self.nodes[node_name].end_time = time.time()
@@ -168,7 +257,15 @@ class ProgressTracker:
         self._notify()
 
     def fail_node(self, node_name: str, error: str) -> None:
-        """Mark a node as failed."""
+        """Mark a node as failed.
+
+        Parameters
+        ----------
+        node_name : str
+            Name of the node to mark as failed.
+        error : str
+            Error message describing the failure.
+        """
         if node_name in self.nodes:
             self.nodes[node_name].status = NodeStatus.FAILED
             self.nodes[node_name].end_time = time.time()
@@ -185,7 +282,13 @@ class ProgressTracker:
         self._notify()
 
     def skip_node(self, node_name: str) -> None:
-        """Mark a node as skipped."""
+        """Mark a node as skipped.
+
+        Parameters
+        ----------
+        node_name : str
+            Name of the node to mark as skipped.
+        """
         self.nodes[node_name] = NodeProgress(
             name=node_name,
             status=NodeStatus.SKIPPED,
@@ -204,7 +307,13 @@ class ProgressTracker:
         self._notify()
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert progress state to a dictionary."""
+        """Convert progress state to a dictionary.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Serialized progress state including node details.
+        """
         return {
             "workflow_name": self.workflow_name,
             "total_nodes": self.total_nodes,
@@ -225,7 +334,13 @@ class ProgressTracker:
         }
 
     def summary(self) -> str:
-        """Return a human-readable summary string."""
+        """Return a human-readable summary string.
+
+        Returns
+        -------
+        str
+            Formatted summary of workflow progress.
+        """
         return (
             f"{self.workflow_name}: {self.percentage:.0f}% "
             f"({self.completed_count}/{self.total_nodes} nodes, "

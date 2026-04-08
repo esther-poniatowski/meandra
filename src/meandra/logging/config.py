@@ -3,6 +3,20 @@ meandra.logging.config
 ======================
 
 Logging configuration and utilities.
+
+Classes
+-------
+LogLevel
+    Log level enumeration.
+StructuredFormatter
+    Formatter that includes structured context in log messages.
+
+Functions
+---------
+configure_logging
+    Configure logging for Meandra.
+get_logger
+    Get a logger for a Meandra module.
 """
 
 import logging
@@ -30,6 +44,20 @@ class StructuredFormatter(logging.Formatter):
 
     Injects workflow execution context (run_id, workflow_name, node_name)
     when available.
+
+    Parameters
+    ----------
+    fmt : Optional[str]
+        Log format string. If None, uses a default structured format.
+    datefmt : Optional[str]
+        Date format string. If None, uses ``%Y-%m-%d %H:%M:%S``.
+    include_context : bool
+        Whether to include workflow context in log messages. Default True.
+
+    Attributes
+    ----------
+    include_context : bool
+        Whether to inject workflow context into log messages.
     """
 
     def __init__(
@@ -38,6 +66,7 @@ class StructuredFormatter(logging.Formatter):
         datefmt: Optional[str] = None,
         include_context: bool = True,
     ) -> None:
+        """Initialize the structured formatter."""
         if fmt is None:
             fmt = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
         if datefmt is None:
@@ -46,6 +75,19 @@ class StructuredFormatter(logging.Formatter):
         self.include_context = include_context
 
     def format(self, record: logging.LogRecord) -> str:
+        """
+        Format a log record with optional workflow context.
+
+        Parameters
+        ----------
+        record : logging.LogRecord
+            The log record to format.
+
+        Returns
+        -------
+        str
+            Formatted log message.
+        """
         # Inject context if available
         if self.include_context:
             ctx = LogContext.current()

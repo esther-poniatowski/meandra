@@ -17,7 +17,14 @@ class ConfigProvider(Protocol):
     """
 
     def get(self, path: str) -> Any:
-        """Retrieve a value by dotted path."""
+        """
+        Retrieve a value by dotted path.
+
+        Parameters
+        ----------
+        path : str
+            Dotted configuration path (e.g. ``"training.lr"``).
+        """
         ...
 
     def to_dict(self) -> Dict[str, Any]:
@@ -29,5 +36,12 @@ class ConfigProvider(Protocol):
         ...
 
     def snapshot(self, path: str) -> None:
-        """Persist a configuration snapshot."""
+        """
+        Persist a configuration snapshot.
+
+        Parameters
+        ----------
+        path : str
+            Filesystem path where the snapshot is written.
+        """
         ...

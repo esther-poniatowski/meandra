@@ -3,6 +3,15 @@ meandra.checkpoint.storage
 ==========================
 
 Storage backends for checkpoints.
+
+Classes
+-------
+CheckpointMetadata
+    Metadata for a checkpoint.
+CheckpointStorage
+    Abstract base class for checkpoint storage backends.
+FileSystemStorage
+    File system-based checkpoint storage.
 """
 
 from abc import ABC, abstractmethod
@@ -21,7 +30,29 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CheckpointMetadata:
-    """Metadata for a checkpoint."""
+    """Metadata for a checkpoint.
+
+    Attributes
+    ----------
+    checkpoint_id : str
+        Unique identifier for the checkpoint.
+    workflow_name : str
+        Name of the workflow.
+    node_name : str
+        Name of the node that produced the data.
+    node_index : int
+        Index of the node in execution order.
+    run_id : str
+        Unique run identifier.
+    timestamp : str
+        ISO-format timestamp of checkpoint creation.
+    data_path : str
+        Path to the serialized data file.
+    workflow_hash : Optional[str]
+        Hash of the workflow definition, or None.
+    completed_nodes : List[str]
+        Names of nodes completed at checkpoint time.
+    """
 
     checkpoint_id: str
     workflow_name: str
@@ -34,7 +65,13 @@ class CheckpointMetadata:
     completed_nodes: List[str] = None
 
     def to_dict(self) -> dict:
-        """Convert to dictionary."""
+        """Convert to dictionary.
+
+        Returns
+        -------
+        dict
+            Dictionary representation of the metadata.
+        """
         return {
             "checkpoint_id": self.checkpoint_id,
             "workflow_name": self.workflow_name,
@@ -49,7 +86,18 @@ class CheckpointMetadata:
 
     @classmethod
     def from_dict(cls, data: dict) -> "CheckpointMetadata":
-        """Create from dictionary."""
+        """Create from dictionary.
+
+        Parameters
+        ----------
+        data : dict
+            Dictionary containing checkpoint metadata fields.
+
+        Returns
+        -------
+        CheckpointMetadata
+            New instance populated from the dictionary.
+        """
         return cls(
             checkpoint_id=data.get("checkpoint_id") or Path(data["data_path"]).parent.name,
             workflow_name=data["workflow_name"],
@@ -96,6 +144,10 @@ class CheckpointStorage(ABC):
             Data to checkpoint.
         run_id : str
             Unique run identifier.
+        workflow_hash : Optional[str]
+            Hash of the workflow definition.
+        completed_nodes : Optional[List[str]]
+            Names of nodes completed so far.
 
         Returns
         -------
@@ -183,8 +235,15 @@ class FileSystemStorage(CheckpointStorage):
 
     Parameters
     ----------
-    base_dir : str or Path
+    base_dir : str | Path
         Base directory for checkpoint storage.
+    retention : int
+        Number of checkpoints to retain per workflow (0 = unlimited).
+
+    Attributes
+    ----------
+    base_dir : Path
+        Resolved base directory for checkpoint storage.
     retention : int
         Number of checkpoints to retain per workflow (0 = unlimited).
 
@@ -201,11 +260,35 @@ class FileSystemStorage(CheckpointStorage):
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_workflow_dir(self, workflow_name: str) -> Path:
-        """Get directory for a workflow's checkpoints."""
+        """Get directory for a workflow's checkpoints.
+
+        Parameters
+        ----------
+        workflow_name : str
+            Name of the workflow.
+
+        Returns
+        -------
+        Path
+            Directory path for the workflow's checkpoints.
+        """
         return self.base_dir / workflow_name
 
     def _generate_checkpoint_id(self, workflow_name: str, run_id: str) -> str:
-        """Generate a unique checkpoint ID."""
+        """Generate a unique checkpoint ID.
+
+        Parameters
+        ----------
+        workflow_name : str
+            Name of the workflow.
+        run_id : str
+            Unique run identifier.
+
+        Returns
+        -------
+        str
+            Generated checkpoint identifier.
+        """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         return f"checkpoint_{timestamp}_{run_id}"
 
@@ -219,7 +302,30 @@ class FileSystemStorage(CheckpointStorage):
         workflow_hash: Optional[str] = None,
         completed_nodes: Optional[List[str]] = None,
     ) -> str:
-        """Save checkpoint data to filesystem."""
+        """Save checkpoint data to filesystem.
+
+        Parameters
+        ----------
+        workflow_name : str
+            Name of the workflow.
+        node_name : str
+            Name of the node that produced the data.
+        node_index : int
+            Index of the node in execution order.
+        data : Any
+            Data to checkpoint.
+        run_id : str
+            Unique run identifier.
+        workflow_hash : Optional[str]
+            Hash of the workflow definition.
+        completed_nodes : Optional[List[str]]
+            Names of nodes completed so far.
+
+        Returns
+        -------
+        str
+            Checkpoint identifier.
+        """
         checkpoint_id = self._generate_checkpoint_id(workflow_name, run_id)
         workflow_dir = self._get_workflow_dir(workflow_name)
         checkpoint_dir = workflow_dir / checkpoint_id
@@ -256,7 +362,18 @@ class FileSystemStorage(CheckpointStorage):
         return checkpoint_id
 
     def load(self, checkpoint_id: str) -> Any:
-        """Load checkpoint data from filesystem."""
+        """Load checkpoint data from filesystem.
+
+        Parameters
+        ----------
+        checkpoint_id : str
+            Checkpoint identifier.
+
+        Returns
+        -------
+        Any
+            Loaded data.
+        """
         metadata = self.get_metadata(checkpoint_id)
         if metadata is None:
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_id}")
@@ -269,7 +386,18 @@ class FileSystemStorage(CheckpointStorage):
         return data
 
     def list_checkpoints(self, workflow_name: str) -> List[CheckpointMetadata]:
-        """List all checkpoints for a workflow."""
+        """List all checkpoints for a workflow.
+
+        Parameters
+        ----------
+        workflow_name : str
+            Name of the workflow.
+
+        Returns
+        -------
+        List[CheckpointMetadata]
+            List of checkpoint metadata, sorted by timestamp (newest first).
+        """
         workflow_dir = self._get_workflow_dir(workflow_name)
         if not workflow_dir.exists():
             return []
@@ -288,7 +416,13 @@ class FileSystemStorage(CheckpointStorage):
         return checkpoints
 
     def delete(self, checkpoint_id: str) -> None:
-        """Delete a checkpoint from filesystem."""
+        """Delete a checkpoint from filesystem.
+
+        Parameters
+        ----------
+        checkpoint_id : str
+            Checkpoint identifier.
+        """
         # Find the checkpoint directory
         for workflow_dir in self.base_dir.iterdir():
             if workflow_dir.is_dir():
@@ -303,7 +437,18 @@ class FileSystemStorage(CheckpointStorage):
         logger.warning(f"Checkpoint not found for deletion: {checkpoint_id}")
 
     def get_metadata(self, checkpoint_id: str) -> Optional[CheckpointMetadata]:
-        """Get metadata for a checkpoint."""
+        """Get metadata for a checkpoint.
+
+        Parameters
+        ----------
+        checkpoint_id : str
+            Checkpoint identifier.
+
+        Returns
+        -------
+        Optional[CheckpointMetadata]
+            Checkpoint metadata, or None if not found.
+        """
         for workflow_dir in self.base_dir.iterdir():
             if workflow_dir.is_dir():
                 checkpoint_dir = workflow_dir / checkpoint_id
@@ -314,7 +459,13 @@ class FileSystemStorage(CheckpointStorage):
         return None
 
     def _apply_retention(self, workflow_name: str) -> None:
-        """Apply retention policy - keep only N most recent checkpoints."""
+        """Apply retention policy - keep only N most recent checkpoints.
+
+        Parameters
+        ----------
+        workflow_name : str
+            Name of the workflow.
+        """
         checkpoints = self.list_checkpoints(workflow_name)
         if len(checkpoints) > self.retention:
             # Delete oldest checkpoints

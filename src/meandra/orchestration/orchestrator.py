@@ -3,6 +3,27 @@ meandra.orchestration.orchestrator
 ==================================
 
 Workflow execution orchestration.
+
+Classes
+-------
+HookEvent
+    Lifecycle events for workflow execution.
+WorkflowExecutionError
+    Raised when workflow execution fails.
+Orchestrator
+    Abstract base class for workflow execution.
+WorkflowState
+    Explicit runtime state segmented into workflow inputs and produced artifacts.
+InputResolver
+    Resolve node inputs from the explicit workflow state.
+LifecycleEvents
+    Manage lifecycle hooks separately from execution policy.
+ResumePolicy
+    Build explicit resume plans from checkpoint state.
+ExecutionEngine
+    Runtime engine composed from smaller collaborators instead of one sink object.
+SchedulingOrchestrator
+    Execute workflows using explicit runtime services and a scheduler.
 """
 
 from __future__ import annotations
@@ -50,7 +71,20 @@ OnErrorHook = Callable[[Node, Exception, Dict[str, Any]], None]
 
 
 class WorkflowExecutionError(NodeExecutionError):
-    """Raised when workflow execution fails."""
+    """
+    Raised when workflow execution fails.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error description.
+    workflow_name : str
+        Name of the workflow that failed.
+    node_name : str
+        Name of the node that caused the failure.
+    original_error : Exception
+        The underlying exception.
+    """
 
     def __init__(
         self,
@@ -97,7 +131,18 @@ class Orchestrator(ABC):
 
 @dataclass
 class WorkflowState:
-    """Explicit runtime state segmented into workflow inputs and produced artifacts."""
+    """
+    Explicit runtime state segmented into workflow inputs and produced artifacts.
+
+    Attributes
+    ----------
+    inputs : Dict[str, Any]
+        Initial workflow inputs.
+    artifacts : Dict[str, Any]
+        Outputs produced by executed nodes.
+    node_outputs : Dict[str, Dict[str, Any]]
+        Per-node output mapping.
+    """
 
     inputs: Dict[str, Any]
     artifacts: Dict[str, Any] = field(default_factory=dict)
@@ -109,6 +154,21 @@ class WorkflowState:
         inputs: Dict[str, Any],
         snapshot: Dict[str, Dict[str, Any]],
     ) -> "WorkflowState":
+        """
+        Create a state from a checkpoint snapshot merged with new inputs.
+
+        Parameters
+        ----------
+        inputs : Dict[str, Any]
+            New inputs to overlay on the resumed state.
+        snapshot : Dict[str, Dict[str, Any]]
+            Serialized checkpoint containing prior inputs and artifacts.
+
+        Returns
+        -------
+        WorkflowState
+            Reconstituted state ready for resumed execution.
+        """
         resumed_inputs = dict(snapshot.get("inputs", {}))
         resumed_inputs.update(inputs)
         artifacts = dict(snapshot.get("artifacts", {}))
@@ -117,15 +177,41 @@ class WorkflowState:
         return cls(inputs=resumed_inputs, artifacts=artifacts)
 
     def available_context(self) -> Dict[str, Any]:
+        """
+        Return the full context of inputs and artifacts.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Merged mapping of workflow inputs and produced artifacts.
+        """
         context = dict(self.inputs)
         context.update(self.artifacts)
         return context
 
     def record_node_outputs(self, node: Node, outputs: Dict[str, Any]) -> None:
+        """
+        Store outputs produced by a node.
+
+        Parameters
+        ----------
+        node : Node
+            The node that produced the outputs.
+        outputs : Dict[str, Any]
+            Mapping of output names to values.
+        """
         self.node_outputs[node.name] = dict(outputs)
         self.artifacts.update(outputs)
 
     def snapshot(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Serialize the current state for checkpointing.
+
+        Returns
+        -------
+        Dict[str, Dict[str, Any]]
+            Mapping with ``inputs`` and ``artifacts`` keys.
+        """
         return {
             "inputs": dict(self.inputs),
             "artifacts": dict(self.artifacts),
@@ -136,6 +222,23 @@ class InputResolver:
     """Resolve node inputs from the explicit workflow state."""
 
     def resolve(self, node: Node, workflow: Workflow, state: WorkflowState) -> Dict[str, Any]:
+        """
+        Determine the inputs for a node from the current workflow state.
+
+        Parameters
+        ----------
+        node : Node
+            The node whose inputs are being resolved.
+        workflow : Workflow
+            The workflow containing the node.
+        state : WorkflowState
+            Current runtime state with inputs and artifacts.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Resolved input mapping for the node.
+        """
         context = state.available_context()
         if node.contract.input_names:
             missing = [key for key in node.contract.input_names if key not in context]
@@ -171,14 +274,44 @@ class LifecycleEvents:
         }
 
     def add_hook(self, event: HookEvent, callback: Callable[..., Any]) -> None:
+        """
+        Register a callback for a lifecycle event.
+
+        Parameters
+        ----------
+        event : HookEvent
+            The event to listen for.
+        callback : Callable[..., Any]
+            Function to invoke when the event fires.
+        """
         self._validate_hook_signature(event, callback)
         self._hooks[event].append(callback)
 
     def remove_hook(self, event: HookEvent, callback: Callable[..., Any]) -> None:
+        """
+        Unregister a previously added callback.
+
+        Parameters
+        ----------
+        event : HookEvent
+            The event the callback was registered for.
+        callback : Callable[..., Any]
+            The callback to remove.
+        """
         if callback in self._hooks[event]:
             self._hooks[event].remove(callback)
 
     def emit(self, event: HookEvent, *args: Any) -> None:
+        """
+        Fire all callbacks registered for an event.
+
+        Parameters
+        ----------
+        event : HookEvent
+            The event to emit.
+        *args : Any
+            Positional arguments forwarded to each callback.
+        """
         for callback in self._hooks[event]:
             try:
                 callback(*args)
@@ -203,7 +336,16 @@ class LifecycleEvents:
 
 
 class ResumePolicy:
-    """Build explicit resume plans from checkpoint state."""
+    """
+    Build explicit resume plans from checkpoint state.
+
+    Parameters
+    ----------
+    checkpoint_manager : Optional[CheckpointManager]
+        Manager for loading checkpoint data, or ``None`` to disable.
+    enabled : bool
+        Whether resume-from-checkpoint is active.
+    """
 
     def __init__(
         self,
@@ -214,6 +356,19 @@ class ResumePolicy:
         self._enabled = enabled
 
     def load(self, workflow: Workflow) -> Optional[ResumePlan]:
+        """
+        Attempt to load a resume plan for the given workflow.
+
+        Parameters
+        ----------
+        workflow : Workflow
+            The workflow to resume.
+
+        Returns
+        -------
+        Optional[ResumePlan]
+            A resume plan if a valid checkpoint exists, otherwise ``None``.
+        """
         if self._checkpoint_manager is None or not self._enabled:
             return None
         checkpoint = self._checkpoint_manager.load_latest(workflow.name)
@@ -223,7 +378,26 @@ class ResumePolicy:
 
 
 class ExecutionEngine:
-    """Runtime engine composed from smaller collaborators instead of one sink object."""
+    """
+    Runtime engine composed from smaller collaborators instead of one sink object.
+
+    Parameters
+    ----------
+    lifecycle : LifecycleEvents
+        Hook manager for workflow lifecycle callbacks.
+    input_resolver : InputResolver
+        Strategy for resolving node inputs from state.
+    checkpoint_manager : Optional[CheckpointManager]
+        Manager for persisting node checkpoints, or ``None``.
+    progress_tracker : Optional[ProgressTracker]
+        Tracker for execution progress reporting, or ``None``.
+    retry_config : Optional[RetryConfig]
+        Retry policy for node execution, or ``None``.
+    fail_fast : bool
+        If ``True``, abort the workflow on the first node failure.
+    max_workers : Optional[int]
+        Maximum threads for parallel layer execution, or ``None`` for serial.
+    """
 
     def __init__(
         self,
@@ -253,6 +427,29 @@ class ExecutionEngine:
         run_id: str,
         resume_plan: Optional[ResumePlan] = None,
     ) -> WorkflowState:
+        """
+        Execute all layers of a workflow.
+
+        Parameters
+        ----------
+        workflow : Workflow
+            The workflow being executed.
+        layers : List[List[Node]]
+            Topologically sorted layers of nodes.
+        inputs : Dict[str, Any]
+            Initial workflow inputs.
+        state_tracker : StateTracker
+            Tracker for per-node execution state.
+        run_id : str
+            Unique identifier for this execution run.
+        resume_plan : Optional[ResumePlan]
+            Plan describing which nodes to skip on resume, or ``None``.
+
+        Returns
+        -------
+        WorkflowState
+            Final state containing all inputs and produced artifacts.
+        """
         state = (
             WorkflowState.from_resume(inputs, resume_plan.state)
             if resume_plan is not None
@@ -484,7 +681,33 @@ class ExecutionEngine:
 
 
 class SchedulingOrchestrator(Orchestrator):
-    """Execute workflows using explicit runtime services and a scheduler."""
+    """
+    Execute workflows using explicit runtime services and a scheduler.
+
+    Parameters
+    ----------
+    scheduler : Optional[Scheduler]
+        Scheduling strategy for node ordering. Defaults to ``DAGScheduler``.
+    state_tracker : Optional[StateTracker]
+        Tracker for per-node execution state, or ``None`` for an in-memory default.
+    checkpoint_manager : Optional[CheckpointManager]
+        Manager for persisting node checkpoints, or ``None``.
+    progress_tracker : Optional[ProgressTracker]
+        Tracker for execution progress reporting, or ``None``.
+    retry_config : Optional[RetryConfig]
+        Retry policy for node execution, or ``None``.
+    fail_fast : bool
+        If ``True``, abort the workflow on the first node failure.
+    resume_from_checkpoint : bool
+        Whether to attempt resuming from the latest checkpoint.
+    max_workers : Optional[int]
+        Maximum threads for parallel layer execution, or ``None`` for serial.
+
+    Attributes
+    ----------
+    scheduler : Scheduler
+        The scheduling strategy used to resolve node ordering.
+    """
 
     def __init__(
         self,
@@ -513,12 +736,47 @@ class SchedulingOrchestrator(Orchestrator):
         )
 
     def add_hook(self, event: HookEvent, callback: Callable[..., Any]) -> None:
+        """
+        Register a lifecycle hook callback.
+
+        Parameters
+        ----------
+        event : HookEvent
+            The event to listen for.
+        callback : Callable[..., Any]
+            Function to invoke when the event fires.
+        """
         self._lifecycle.add_hook(event, callback)
 
     def remove_hook(self, event: HookEvent, callback: Callable[..., Any]) -> None:
+        """
+        Unregister a lifecycle hook callback.
+
+        Parameters
+        ----------
+        event : HookEvent
+            The event the callback was registered for.
+        callback : Callable[..., Any]
+            The callback to remove.
+        """
         self._lifecycle.remove_hook(event, callback)
 
     def run(self, workflow: Workflow, inputs: Dict[str, Any] | ConfigProvider) -> Dict[str, Any]:
+        """
+        Execute a workflow with given inputs.
+
+        Parameters
+        ----------
+        workflow : Workflow
+            The workflow to execute.
+        inputs : Dict[str, Any] | ConfigProvider
+            Initial inputs or a configuration provider to resolve.
+
+        Returns
+        -------
+        Dict[str, Any]
+            All outputs from all nodes.
+        """
         run_id = str(uuid4())[:8]
         state_tracker = self._state_tracker or InMemoryStateTracker(workflow.name, run_id)
         logger.info("Starting workflow '%s' (run_id=%s)", workflow.name, run_id)

@@ -2,8 +2,7 @@
 meandra.core
 ============
 
-Defines the core API for constructing and executing data processing workflows in the Meandra
-framework.
+Core API for constructing and executing data processing workflows.
 
 The `core` module provides the foundational base classes for workflow components: nodes and
 workflows. These abstractions establish a standardized interface that users must implement when

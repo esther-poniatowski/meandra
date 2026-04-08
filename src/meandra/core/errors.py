@@ -38,6 +38,13 @@ class MeandraError(Exception):
     All Meandra-specific exceptions inherit from this class, enabling
     unified error handling and structured error information.
 
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    **details : Any
+        Additional structured error information.
+
     Attributes
     ----------
     message : str
@@ -58,7 +65,13 @@ class MeandraError(Exception):
         return self.message
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert exception to a dictionary for structured logging."""
+        """Convert exception to a dictionary for structured logging.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Structured error representation.
+        """
         return {
             "type": self.__class__.__name__,
             "message": self.message,
@@ -69,6 +82,15 @@ class MeandraError(Exception):
 class WorkflowError(MeandraError):
     """
     Base exception for workflow-related errors.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    workflow_name : str
+        Name of the workflow that encountered the error.
+    **details : Any
+        Additional structured error information.
 
     Attributes
     ----------
@@ -84,6 +106,19 @@ class WorkflowError(MeandraError):
 class NodeExecutionError(WorkflowError):
     """
     Raised when a node fails during execution.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    workflow_name : str
+        Name of the workflow that encountered the error.
+    node_name : str
+        Name of the node that failed.
+    original_error : Optional[Exception]
+        The underlying exception that caused the failure.
+    **details : Any
+        Additional structured error information.
 
     Attributes
     ----------
@@ -111,6 +146,13 @@ class NodeExecutionError(WorkflowError):
         self.original_error = original_error
 
     def to_dict(self) -> Dict[str, Any]:
+        """Convert exception to a dictionary for structured logging.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Structured error representation.
+        """
         result = super().to_dict()
         if self.original_error:
             result["original_error"] = {
@@ -123,6 +165,19 @@ class NodeExecutionError(WorkflowError):
 class DependencyResolutionError(WorkflowError):
     """
     Raised when workflow dependencies cannot be resolved.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    workflow_name : str
+        Name of the workflow that encountered the error.
+    cycle : Optional[List[str]]
+        List of node names involved in a dependency cycle, if applicable.
+    missing : Optional[List[str]]
+        List of missing dependency names, if applicable.
+    **details : Any
+        Additional structured error information.
 
     Attributes
     ----------
@@ -149,6 +204,13 @@ class DependencyResolutionError(WorkflowError):
         self.missing = missing or []
 
     def to_dict(self) -> Dict[str, Any]:
+        """Convert exception to a dictionary for structured logging.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Structured error representation.
+        """
         result = super().to_dict()
         if self.cycle:
             result["cycle"] = self.cycle
@@ -160,6 +222,19 @@ class DependencyResolutionError(WorkflowError):
 class ValidationError(WorkflowError):
     """
     Raised when workflow validation fails.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    workflow_name : str
+        Name of the workflow that encountered the error.
+    errors : Optional[List[str]]
+        List of validation error messages.
+    warnings : Optional[List[str]]
+        List of validation warning messages.
+    **details : Any
+        Additional structured error information.
 
     Attributes
     ----------
@@ -186,6 +261,13 @@ class ValidationError(WorkflowError):
         self.warnings = warnings or []
 
     def to_dict(self) -> Dict[str, Any]:
+        """Convert exception to a dictionary for structured logging.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Structured error representation.
+        """
         result = super().to_dict()
         result["errors"] = self.errors
         result["warnings"] = self.warnings
@@ -195,6 +277,17 @@ class ValidationError(WorkflowError):
 class CheckpointError(MeandraError):
     """
     Raised when checkpoint operations fail.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    operation : str
+        The checkpoint operation that failed (e.g., 'save', 'load', 'delete').
+    checkpoint_id : Optional[str]
+        ID of the checkpoint involved, if applicable.
+    **details : Any
+        Additional structured error information.
 
     Attributes
     ----------
@@ -224,6 +317,19 @@ class CheckpointError(MeandraError):
 class TimeoutError(builtins.TimeoutError, MeandraError):
     """
     Raised when an operation exceeds its time limit.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    timeout_seconds : float
+        The timeout that was exceeded.
+    operation : str
+        Description of the operation that timed out.
+    elapsed_seconds : Optional[float]
+        Actual elapsed time before timeout, if known.
+    **details : Any
+        Additional structured error information.
 
     Attributes
     ----------
@@ -260,6 +366,15 @@ class ConfigurationError(MeandraError):
     """
     Raised when configuration is invalid or missing.
 
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    config_key : Optional[str]
+        The configuration key that caused the error, if applicable.
+    **details : Any
+        Additional structured error information.
+
     Attributes
     ----------
     config_key : Optional[str]
@@ -279,6 +394,17 @@ class ConfigurationError(MeandraError):
 class RetryExhaustedError(MeandraError):
     """
     Raised when all retry attempts have been exhausted.
+
+    Parameters
+    ----------
+    message : str
+        Human-readable error message.
+    attempts : int
+        Number of attempts made.
+    last_error : Exception
+        The last exception that occurred.
+    **details : Any
+        Additional structured error information.
 
     Attributes
     ----------
@@ -300,6 +426,13 @@ class RetryExhaustedError(MeandraError):
         self.last_error = last_error
 
     def to_dict(self) -> Dict[str, Any]:
+        """Convert exception to a dictionary for structured logging.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Structured error representation.
+        """
         result = super().to_dict()
         result["last_error"] = {
             "type": type(self.last_error).__name__,

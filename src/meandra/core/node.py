@@ -3,6 +3,15 @@ meandra.core.node
 =================
 
 Processing nodes for workflow execution.
+
+Classes
+-------
+PortSpec
+    Explicit description of a workflow input or output port.
+NodeContract
+    Explicit IO contract for a workflow node.
+Node
+    Define a processing node in the workflow.
 """
 
 from dataclasses import dataclass, field, replace
@@ -11,14 +20,32 @@ from typing import Any, Dict, List, Callable, Optional
 
 @dataclass(frozen=True)
 class PortSpec:
-    """Explicit description of a workflow input or output port."""
+    """
+    Explicit description of a workflow input or output port.
+
+    Attributes
+    ----------
+    name : str
+        Name of the port.
+    """
 
     name: str
 
 
 @dataclass(frozen=True)
 class NodeContract:
-    """Explicit IO contract for a workflow node."""
+    """
+    Explicit IO contract for a workflow node.
+
+    Attributes
+    ----------
+    inputs : tuple[PortSpec, ...]
+        Input port specifications.
+    outputs : tuple[PortSpec, ...]
+        Output port specifications.
+    accepts_context : bool
+        Whether the node accepts the full execution context.
+    """
 
     inputs: tuple[PortSpec, ...] = ()
     outputs: tuple[PortSpec, ...] = ()
@@ -26,10 +53,24 @@ class NodeContract:
 
     @property
     def input_names(self) -> List[str]:
+        """Return the names of all input ports.
+
+        Returns
+        -------
+        List[str]
+            Names of the input ports.
+        """
         return [port.name for port in self.inputs]
 
     @property
     def output_names(self) -> List[str]:
+        """Return the names of all output ports.
+
+        Returns
+        -------
+        List[str]
+            Names of the output ports.
+        """
         return [port.name for port in self.outputs]
 
 
@@ -84,7 +125,13 @@ class Node:
 
     @property
     def contract(self) -> NodeContract:
-        """Structured contract shared by validation, CLI, and execution layers."""
+        """Return the structured contract shared by validation, CLI, and execution layers.
+
+        Returns
+        -------
+        NodeContract
+            IO contract describing the node's input and output ports.
+        """
         return NodeContract(
             inputs=tuple(PortSpec(name) for name in self.inputs),
             outputs=tuple(PortSpec(name) for name in self.outputs),
@@ -103,7 +150,7 @@ class Node:
         Returns
         -------
         Dict[str, Any]
-            Output data from the node.
+            Output data produced by the node.
         """
         if self.input_contract is not None:
             self.input_contract(inputs)
@@ -122,7 +169,18 @@ class Node:
         return result
 
     def clone(self, **changes: Any) -> "Node":
-        """Create a modified copy without reconstructing the node field-by-field."""
+        """Create a modified copy without reconstructing the node field-by-field.
+
+        Parameters
+        ----------
+        **changes : Any
+            Field values to override in the cloned node.
+
+        Returns
+        -------
+        Node
+            New node with the specified changes applied.
+        """
         return replace(self, **changes)
 
     def __hash__(self) -> int:

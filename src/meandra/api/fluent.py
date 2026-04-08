@@ -7,6 +7,11 @@ Fluent API for building workflows with method chaining.
 This module provides builder classes for creating nodes and workflows
 using a fluent, chainable interface.
 
+Notes
+-----
+The fluent API is an alternative to the decorator-based API for building
+workflows programmatically.
+
 Examples
 --------
 >>> from meandra.api import step, pipe
@@ -23,6 +28,20 @@ Examples
 ...     .add(step(process).in_("data").out("result").depends_on("load_data"))
 ...     .build()
 ... )
+
+Classes
+-------
+StepBuilder
+    Fluent builder for creating a Node.
+PipelineBuilder
+    Fluent builder for creating a Workflow.
+
+Functions
+---------
+step
+    Create a StepBuilder from a callable.
+pipe
+    Create a PipelineBuilder.
 """
 
 from dataclasses import dataclass, field
@@ -72,46 +91,134 @@ class StepBuilder:
     output_contract: Optional[Callable[[Dict[str, Any]], None]] = None
 
     def named(self, name: str) -> "StepBuilder":
-        """Set the node name."""
+        """Set the node name.
+
+        Parameters
+        ----------
+        name : str
+            Name to assign to the node.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.name = name
         return self
 
     def in_(self, *keys: str) -> "StepBuilder":
-        """Specify input keys."""
+        """Specify input keys.
+
+        Parameters
+        ----------
+        *keys : str
+            Input key names.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.inputs = list(keys)
         return self
 
     def out(self, *keys: str) -> "StepBuilder":
-        """Specify output keys."""
+        """Specify output keys.
+
+        Parameters
+        ----------
+        *keys : str
+            Output key names.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.outputs = list(keys)
         return self
 
     def depends_on(self, *names: str) -> "StepBuilder":
-        """Specify dependency node names."""
+        """Specify dependency node names.
+
+        Parameters
+        ----------
+        *names : str
+            Names of upstream nodes this step depends on.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.dependencies = list(names)
         return self
 
     def checkpointable(self, flag: bool = True) -> "StepBuilder":
-        """Set whether the node is checkpointable."""
+        """Set whether the node is checkpointable.
+
+        Parameters
+        ----------
+        flag : bool
+            Enable or disable checkpointing.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.is_checkpointable = flag
         return self
 
     def context(self, flag: bool = True) -> "StepBuilder":
-        """Set whether the node accepts full context."""
+        """Set whether the node accepts full context.
+
+        Parameters
+        ----------
+        flag : bool
+            Enable or disable full context passing.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.accepts_context = flag
         return self
 
     def with_input_contract(
         self, contract: Callable[[Dict[str, Any]], None]
     ) -> "StepBuilder":
-        """Set input validation contract."""
+        """Set input validation contract.
+
+        Parameters
+        ----------
+        contract : Callable[[Dict[str, Any]], None]
+            Callable that validates node inputs.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.input_contract = contract
         return self
 
     def with_output_contract(
         self, contract: Callable[[Dict[str, Any]], None]
     ) -> "StepBuilder":
-        """Set output validation contract."""
+        """Set output validation contract.
+
+        Parameters
+        ----------
+        contract : Callable[[Dict[str, Any]], None]
+            Callable that validates node outputs.
+
+        Returns
+        -------
+        StepBuilder
+            Self for chaining.
+        """
         self.output_contract = contract
         return self
 
@@ -127,7 +234,13 @@ class StepBuilder:
         return self.to_spec().to_node()
 
     def to_spec(self) -> NodeSpec:
-        """Convert the fluent builder into the canonical node specification."""
+        """Convert the fluent builder into the canonical node specification.
+
+        Returns
+        -------
+        NodeSpec
+            Canonical node specification.
+        """
         node_name = self.name or self.func.__name__
         return NodeSpec(
             name=node_name,
@@ -196,7 +309,13 @@ class PipelineBuilder:
         return self.to_spec().build()
 
     def to_spec(self) -> PipelineSpec:
-        """Compile the fluent pipeline into the canonical workflow specification."""
+        """Compile the fluent pipeline into the canonical workflow specification.
+
+        Returns
+        -------
+        PipelineSpec
+            Canonical workflow specification.
+        """
         return PipelineSpec(
             name=self.name,
             cls=None,
@@ -210,7 +329,7 @@ def step(func: Callable[[Dict[str, Any]], Any]) -> StepBuilder:
 
     Parameters
     ----------
-    func : Callable
+    func : Callable[[Dict[str, Any]], Any]
         Function to wrap as a node.
 
     Returns
