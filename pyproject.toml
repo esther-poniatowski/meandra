@@ -54,6 +54,7 @@ docs = [
     "sphinx",
     "sphinx-rtd-theme",
     "myst-parser",
+    "sphinx-markdown-builder",
 ]
 hdf5 = [
     "h5py>=3.0",         # HDF5 file support

@@ -2,12 +2,8 @@
 
 This section describes the design decisions and architectural patterns in Meandra.
 
-```{toctree}
-:maxdepth: 2
-
-overview
-patterns
-```
+- [Architectural Overview](overview.md)
+- [Design Patterns](patterns.md)
 
 ## Overview
 

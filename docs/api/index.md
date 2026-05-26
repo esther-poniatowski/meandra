@@ -1,40 +1,42 @@
+<a id="api-reference"></a>
+
 # API Reference
 
-This section documents the public API of Meandra.
-
-```{toctree}
-:maxdepth: 2
-
-api
-core
-orchestration
-datastore
-monitoring
-```
-
-## User-Facing API
-
-```{eval-rst}
-.. automodule:: meandra.api
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
-### Fluent API
-
-```{eval-rst}
-.. automodule:: meandra.api.fluent
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
-
-### Decorator API
-
-```{eval-rst}
-.. automodule:: meandra.api.decorators
-   :members:
-   :undoc-members:
-   :show-inheritance:
-```
+* [Top-Level](top-level.md)
+  * [Diagnostics](top-level.md#diagnostics)
+* [Core](core.md)
+  * [Node](core.md#module-meandra.core.node)
+  * [Workflow](core.md#module-meandra.core.workflow)
+  * [Graph](core.md#module-meandra.core.graph)
+  * [Errors](core.md#module-meandra.core.errors)
+* [User-Facing API](api.md)
+  * [Fluent API](api.md#module-meandra.api.fluent)
+  * [Decorator API](api.md#module-meandra.api.decorators)
+* [Scheduling](scheduling.md)
+  * [Scheduler](scheduling.md#module-meandra.scheduling.scheduler)
+* [Orchestration](orchestration.md)
+  * [Orchestrator](orchestration.md#module-meandra.orchestration.orchestrator)
+* [Monitoring](monitoring.md)
+  * [Progress](monitoring.md#module-meandra.monitoring.progress)
+  * [Retry](monitoring.md#module-meandra.monitoring.retry)
+  * [State Tracker](monitoring.md#module-meandra.monitoring.state_tracker)
+* [Logging](logging.md)
+  * [Configuration](logging.md#module-meandra.logging.config)
+  * [Context](logging.md#module-meandra.logging.context)
+* [Datastore](datastore.md)
+  * [Catalog](datastore.md#module-meandra.datastore.catalog)
+  * [IO Handlers](datastore.md#module-meandra.datastore.io_handlers)
+* [Checkpoint](checkpoint.md)
+  * [Manager](checkpoint.md#module-meandra.checkpoint.manager)
+  * [Storage](checkpoint.md#module-meandra.checkpoint.storage)
+* [Configuration](configuration.md)
+  * [Configuration Provider](configuration.md#module-meandra.configuration.mod)
+* [Integration](integration.md)
+  * [Protocols](integration.md#module-meandra.integration.protocols)
+  * [Tessara Adapter](integration.md#module-meandra.integration.tessara)
+  * [Data Structure Handlers](integration.md#module-meandra.integration.data)
+* [Utilities](utils.md)
+  * [Helpers](utils.md#module-meandra.utils.mod)
+  * [Typing](utils.md#module-meandra.utils.typing)
+* [Command-Line Interface](cli.md)
+  * [CLI Application](cli.md#module-meandra.cli_app)
