@@ -3,13 +3,6 @@ meandra.monitoring.progress
 ===========================
 
 Progress tracking for workflow execution.
-
-Classes
--------
-NodeProgress
-    Progress information for a single node.
-ProgressTracker
-    Track progress of workflow execution.
 """
 
 import logging
@@ -31,25 +24,18 @@ NodeStatus = NodeState
 class NodeProgress:
     """Progress information for a single node.
 
-    Attributes
-    ----------
-    name : str
-        Name of the node.
-    status : NodeStatus
-        Current execution status of the node.
-    start_time : float or None
-        Timestamp when the node started executing.
-    end_time : float or None
-        Timestamp when the node finished executing.
-    error : str or None
-        Error message if the node failed.
     """
 
     name: str
+    """Name of the node."""
     status: NodeStatus = NodeStatus.PENDING
+    """Current execution status of the node."""
     start_time: Optional[float] = None
+    """Timestamp when the node started executing."""
     end_time: Optional[float] = None
+    """Timestamp when the node finished executing."""
     error: Optional[str] = None
+    """Error message if the node failed."""
 
     @property
     def duration_seconds(self) -> Optional[float]:
@@ -74,15 +60,6 @@ class ProgressTracker:
     Provides real-time visibility into workflow execution state,
     including node status, timing, and completion percentage.
 
-    Attributes
-    ----------
-    workflow_name : str
-        Name of the workflow being tracked.
-    total_nodes : int
-        Total number of nodes in the workflow.
-    callbacks : List[Callable]
-        Functions to call on progress updates.
-
     Examples
     --------
     >>> tracker = ProgressTracker("my_workflow", 5)
@@ -93,9 +70,12 @@ class ProgressTracker:
     """
 
     workflow_name: str
+    """Name of the workflow being tracked."""
     total_nodes: int
+    """Total number of nodes in the workflow."""
     nodes: Dict[str, NodeProgress] = field(default_factory=dict)
     callbacks: List[Callable[["ProgressTracker"], None]] = field(default_factory=list)
+    """Functions to call on progress updates."""
     start_time: Optional[float] = None
     end_time: Optional[float] = None
 

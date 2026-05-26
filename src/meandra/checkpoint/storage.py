@@ -3,15 +3,6 @@ meandra.checkpoint.storage
 ==========================
 
 Storage backends for checkpoints.
-
-Classes
--------
-CheckpointMetadata
-    Metadata for a checkpoint.
-CheckpointStorage
-    Abstract base class for checkpoint storage backends.
-FileSystemStorage
-    File system-based checkpoint storage.
 """
 
 from abc import ABC, abstractmethod
@@ -32,37 +23,26 @@ logger = logging.getLogger(__name__)
 class CheckpointMetadata:
     """Metadata for a checkpoint.
 
-    Attributes
-    ----------
-    checkpoint_id : str
-        Unique identifier for the checkpoint.
-    workflow_name : str
-        Name of the workflow.
-    node_name : str
-        Name of the node that produced the data.
-    node_index : int
-        Index of the node in execution order.
-    run_id : str
-        Unique run identifier.
-    timestamp : str
-        ISO-format timestamp of checkpoint creation.
-    data_path : str
-        Path to the serialized data file.
-    workflow_hash : Optional[str]
-        Hash of the workflow definition, or None.
-    completed_nodes : List[str]
-        Names of nodes completed at checkpoint time.
     """
 
     checkpoint_id: str
+    """Unique identifier for the checkpoint."""
     workflow_name: str
+    """Name of the workflow."""
     node_name: str
+    """Name of the node that produced the data."""
     node_index: int
+    """Index of the node in execution order."""
     run_id: str
+    """Unique run identifier."""
     timestamp: str
+    """ISO-format timestamp of checkpoint creation."""
     data_path: str
+    """Path to the serialized data file."""
     workflow_hash: Optional[str] = None
+    """Hash of the workflow definition, or None."""
     completed_nodes: List[str] = None
+    """Names of nodes completed at checkpoint time."""
 
     def to_dict(self) -> dict:
         """Convert to dictionary.
@@ -237,13 +217,6 @@ class FileSystemStorage(CheckpointStorage):
     ----------
     base_dir : str | Path
         Base directory for checkpoint storage.
-    retention : int
-        Number of checkpoints to retain per workflow (0 = unlimited).
-
-    Attributes
-    ----------
-    base_dir : Path
-        Resolved base directory for checkpoint storage.
     retention : int
         Number of checkpoints to retain per workflow (0 = unlimited).
 

@@ -3,15 +3,6 @@ meandra.core.workflow
 =====================
 
 Workflow definition and management.
-
-Classes
--------
-ValidationResult
-    Result of workflow validation.
-Workflow
-    Define a workflow composed of multiple processing nodes.
-WorkflowModel
-    Canonical workflow representation.
 """
 
 from dataclasses import dataclass, field
@@ -28,19 +19,14 @@ from meandra.core.graph import topological_layers
 class ValidationResult:
     """Result of workflow validation.
 
-    Attributes
-    ----------
-    valid : bool
-        Whether the workflow passed validation.
-    errors : List[str]
-        Validation errors found.
-    warnings : List[str]
-        Validation warnings found.
     """
 
     valid: bool
+    """Whether the workflow passed validation."""
     errors: List[str] = field(default_factory=list)
+    """Validation errors found."""
     warnings: List[str] = field(default_factory=list)
+    """Validation warnings found."""
 
     def raise_if_invalid(self, workflow_name: str = "") -> None:
         """Raise ValidationError if validation failed.
@@ -67,13 +53,6 @@ class Workflow:
     A workflow is a directed acyclic graph (DAG) of nodes, where each node
     represents a computation step with explicit dependencies.
 
-    Attributes
-    ----------
-    name : str
-        Unique identifier for the workflow.
-    nodes : Dict[str, Node]
-        Mapping of node names to Node instances.
-
     Examples
     --------
     >>> def load_data(inputs):
@@ -86,7 +65,9 @@ class Workflow:
     """
 
     name: str
+    """Unique identifier for the workflow."""
     nodes: Dict[str, Node] = field(default_factory=dict)
+    """Mapping of node names to Node instances."""
     _validation_cache: Dict[Tuple[str, Optional[Tuple[str, ...]]], ValidationResult] = field(
         default_factory=dict,
         init=False,
@@ -409,22 +390,15 @@ class WorkflowModel:
     """
     Canonical workflow representation.
 
-    Attributes
-    ----------
-    name : str
-        Workflow name.
-    nodes : List[Node]
-        Nodes in the workflow.
-    edges : List[Tuple[str, str]]
-        Directed edges as (dependency, dependent).
-    inputs : List[str]
-        Unique input keys expected by nodes.
-    outputs : List[str]
-        Unique output keys produced by nodes.
     """
 
     name: str
+    """Workflow name."""
     nodes: List[Node]
+    """Nodes in the workflow."""
     edges: List[Tuple[str, str]]
+    """Directed edges as (dependency, dependent)."""
     inputs: List[str]
+    """Unique input keys expected by nodes."""
     outputs: List[str]
+    """Unique output keys produced by nodes."""

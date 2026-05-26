@@ -3,13 +3,6 @@ meandra.integration.data
 ========================
 
 Integration adapters for Morpha data structures.
-
-Classes
--------
-DataStructureIOHandler
-    IOHandler that bridges Meandra's I/O system with Morpha's Saver/Loader.
-TypedNode
-    Node with input/output type contracts for DataStructures.
 """
 
 from __future__ import annotations
@@ -44,13 +37,6 @@ class DataStructureIOHandler(IOHandler):
         Morpha Saver class for writing. If None, uses auto-detection.
     loader_cls : Optional[Type[Loader]]
         Morpha Loader class for reading. If None, uses auto-detection.
-
-    Attributes
-    ----------
-    saver_cls : Type[Saver]
-        The Morpha Saver class to use for writing.
-    loader_cls : Type[Loader]
-        The Morpha Loader class to use for reading.
 
     Examples
     --------

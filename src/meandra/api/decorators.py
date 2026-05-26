@@ -31,30 +31,6 @@ Decorating a class to create a pipeline:
 ...     @node(inputs=["data"], outputs=["result"], depends_on=["load"])
 ...     def process(self, inputs):
 ...         return {"result": sum(inputs["data"])}
-
-Classes
--------
-NodeSpec
-    Specification for a node created by the @node decorator.
-PipelineSpec
-    Specification for a pipeline created by the @pipeline decorator.
-
-Functions
----------
-node
-    Decorator to mark a function as a workflow node.
-get_node_spec
-    Get the NodeSpec attached to a decorated function.
-is_node
-    Check if a function is decorated with @node.
-pipeline
-    Decorator to mark a class as a workflow pipeline.
-get_pipeline_spec
-    Get the PipelineSpec attached to a decorated class.
-is_pipeline
-    Check if a class is decorated with @pipeline.
-build_workflow
-    Build a Workflow from a @pipeline decorated class.
 """
 
 from dataclasses import dataclass, field
@@ -87,37 +63,26 @@ class NodeSpec:
     """
     Specification for a node created by the @node decorator.
 
-    Attributes
-    ----------
-    func : Callable
-        The decorated function.
-    name : Optional[str]
-        Node name. If None, uses function name.
-    inputs : List[str]
-        Input keys the node expects.
-    outputs : List[str]
-        Output keys the node produces.
-    dependencies : List[str]
-        Names of nodes this node depends on.
-    is_checkpointable : bool
-        Whether the node supports checkpointing.
-    accepts_context : bool
-        Whether the node receives full context.
-    input_contract : Optional[Callable]
-        Input validation contract.
-    output_contract : Optional[Callable]
-        Output validation contract.
     """
 
     func: Callable[..., Any]
+    """The decorated function."""
     name: Optional[str] = None
+    """Node name. If None, uses function name."""
     inputs: List[str] = field(default_factory=list)
+    """Input keys the node expects."""
     outputs: List[str] = field(default_factory=list)
+    """Output keys the node produces."""
     dependencies: List[str] = field(default_factory=list)
+    """Names of nodes this node depends on."""
     is_checkpointable: bool = False
+    """Whether the node supports checkpointing."""
     accepts_context: bool = False
+    """Whether the node receives full context."""
     input_contract: Optional[Callable[[Dict[str, Any]], None]] = None
+    """Input validation contract."""
     output_contract: Optional[Callable[[Dict[str, Any]], None]] = None
+    """Output validation contract."""
 
     def to_node(self, instance: Optional[Any] = None) -> Node:
         """
@@ -318,19 +283,14 @@ class PipelineSpec:
     """
     Specification for a pipeline created by the @pipeline decorator.
 
-    Attributes
-    ----------
-    name : str
-        Pipeline name.
-    cls : Optional[Type]
-        The decorated class when applicable.
-    node_specs : List[NodeSpec]
-        Node specifications discovered from decorated methods.
     """
 
     name: str
+    """Pipeline name."""
     cls: Optional[Type[Any]]
+    """The decorated class when applicable."""
     node_specs: List[NodeSpec] = field(default_factory=list)
+    """Node specifications discovered from decorated methods."""
 
     def build(
         self,

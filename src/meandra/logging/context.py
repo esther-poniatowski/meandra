@@ -3,13 +3,6 @@ meandra.logging.context
 =======================
 
 Execution context for structured logging.
-
-Classes
--------
-LogContext
-    Execution context for workflow logging.
-LogContextManager
-    Context manager for scoped log context.
 """
 
 from contextvars import ContextVar
@@ -26,22 +19,16 @@ class LogContext:
     Stores information about the current execution state for
     injection into log messages.
 
-    Attributes
-    ----------
-    run_id : Optional[str]
-        Unique identifier for the current run.
-    workflow_name : Optional[str]
-        Name of the currently executing workflow.
-    node_name : Optional[str]
-        Name of the currently executing node.
-    start_time : Optional[float]
-        Unix timestamp when execution started.
     """
 
     run_id: Optional[str] = None
+    """Unique identifier for the current run."""
     workflow_name: Optional[str] = None
+    """Name of the currently executing workflow."""
     node_name: Optional[str] = None
+    """Name of the currently executing node."""
     start_time: Optional[float] = field(default_factory=time.time)
+    """Unix timestamp when execution started."""
 
     @property
     def elapsed_seconds(self) -> float:
@@ -150,11 +137,6 @@ class LogContextManager:
         Name of the currently executing workflow.
     node_name : Optional[str]
         Name of the currently executing node.
-
-    Attributes
-    ----------
-    new_context : LogContext
-        The context that will be active inside the managed scope.
 
     Examples
     --------

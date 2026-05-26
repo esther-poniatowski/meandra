@@ -3,15 +3,6 @@ meandra.core.node
 =================
 
 Processing nodes for workflow execution.
-
-Classes
--------
-PortSpec
-    Explicit description of a workflow input or output port.
-NodeContract
-    Explicit IO contract for a workflow node.
-Node
-    Define a processing node in the workflow.
 """
 
 from dataclasses import dataclass, field, replace
@@ -23,13 +14,10 @@ class PortSpec:
     """
     Explicit description of a workflow input or output port.
 
-    Attributes
-    ----------
-    name : str
-        Name of the port.
     """
 
     name: str
+    """Name of the port."""
 
 
 @dataclass(frozen=True)
@@ -37,19 +25,14 @@ class NodeContract:
     """
     Explicit IO contract for a workflow node.
 
-    Attributes
-    ----------
-    inputs : tuple[PortSpec, ...]
-        Input port specifications.
-    outputs : tuple[PortSpec, ...]
-        Output port specifications.
-    accepts_context : bool
-        Whether the node accepts the full execution context.
     """
 
     inputs: tuple[PortSpec, ...] = ()
+    """Input port specifications."""
     outputs: tuple[PortSpec, ...] = ()
+    """Output port specifications."""
     accepts_context: bool = False
+    """Whether the node accepts the full execution context."""
 
     @property
     def input_names(self) -> List[str]:
@@ -82,27 +65,6 @@ class Node:
     A node represents a single computation step with explicit inputs,
     outputs, and dependencies on other nodes.
 
-    Attributes
-    ----------
-    name : str
-        Unique identifier for the node within a workflow.
-    func : Callable[[Dict[str, Any]], Any]
-        Function to execute. Takes a dict of inputs and returns outputs.
-    dependencies : List[str]
-        Names of nodes this node depends on (outputs needed as inputs).
-    inputs : List[str]
-        Names of input keys expected from dependencies or workflow inputs.
-    outputs : List[str]
-        Names of output keys produced by this node.
-    is_checkpointable : bool
-        Whether node outputs should be checkpointed.
-    accepts_context : bool
-        If True, the node receives the full context when inputs are not specified.
-    input_contract : Optional[Callable[[Dict[str, Any]], None]]
-        Optional validator for node inputs.
-    output_contract : Optional[Callable[[Dict[str, Any]], None]]
-        Optional validator for node outputs.
-
     Examples
     --------
     >>> def add(inputs):
@@ -114,14 +76,23 @@ class Node:
     """
 
     name: str
+    """Unique identifier for the node within a workflow."""
     func: Callable[[Dict[str, Any]], Any]
+    """Function to execute. Takes a dict of inputs and returns outputs."""
     dependencies: List[str] = field(default_factory=list)
+    """Names of nodes this node depends on (outputs needed as inputs)."""
     inputs: List[str] = field(default_factory=list)
+    """Names of input keys expected from dependencies or workflow inputs."""
     outputs: List[str] = field(default_factory=list)
+    """Names of output keys produced by this node."""
     is_checkpointable: bool = False
+    """Whether node outputs should be checkpointed."""
     accepts_context: bool = False
+    """If True, the node receives the full context when inputs are not specified."""
     input_contract: Optional[Callable[[Dict[str, Any]], None]] = None
+    """Optional validator for node inputs."""
     output_contract: Optional[Callable[[Dict[str, Any]], None]] = None
+    """Optional validator for node outputs."""
 
     @property
     def contract(self) -> NodeContract:

@@ -6,25 +6,6 @@ Custom exception hierarchy for Meandra.
 
 All Meandra-specific exceptions inherit from MeandraError, enabling
 unified error handling across the framework.
-
-Classes
--------
-MeandraError
-    Base exception for all Meandra errors.
-WorkflowError
-    Base for workflow-related errors.
-NodeExecutionError
-    Raised when a node fails during execution.
-DependencyResolutionError
-    Raised when dependencies cannot be resolved.
-ValidationError
-    Raised when validation fails.
-CheckpointError
-    Raised when checkpoint operations fail.
-TimeoutError
-    Raised when an operation exceeds its time limit.
-ConfigurationError
-    Raised when configuration is invalid.
 """
 
 from typing import Any, Dict, List, Optional
@@ -45,12 +26,6 @@ class MeandraError(Exception):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    message : str
-        Human-readable error message.
-    details : Dict[str, Any]
-        Additional structured information about the error.
     """
 
     def __init__(self, message: str, **details: Any) -> None:
@@ -92,10 +67,6 @@ class WorkflowError(MeandraError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    workflow_name : str
-        Name of the workflow that encountered the error.
     """
 
     def __init__(self, message: str, workflow_name: str, **details: Any) -> None:
@@ -120,12 +91,6 @@ class NodeExecutionError(WorkflowError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    node_name : str
-        Name of the node that failed.
-    original_error : Exception
-        The underlying exception that caused the failure.
     """
 
     def __init__(
@@ -179,12 +144,6 @@ class DependencyResolutionError(WorkflowError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    cycle : List[str]
-        List of node names involved in a dependency cycle, if applicable.
-    missing : List[str]
-        List of missing dependency names, if applicable.
     """
 
     def __init__(
@@ -236,12 +195,6 @@ class ValidationError(WorkflowError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    errors : List[str]
-        List of validation error messages.
-    warnings : List[str]
-        List of validation warning messages.
     """
 
     def __init__(
@@ -289,12 +242,6 @@ class CheckpointError(MeandraError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    operation : str
-        The checkpoint operation that failed (e.g., 'save', 'load', 'delete').
-    checkpoint_id : Optional[str]
-        ID of the checkpoint involved, if applicable.
     """
 
     def __init__(
@@ -331,14 +278,6 @@ class TimeoutError(builtins.TimeoutError, MeandraError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    timeout_seconds : float
-        The timeout that was exceeded.
-    elapsed_seconds : Optional[float]
-        Actual elapsed time before timeout, if known.
-    operation : str
-        Description of the operation that timed out.
     """
 
     def __init__(
@@ -375,10 +314,6 @@ class ConfigurationError(MeandraError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    config_key : Optional[str]
-        The configuration key that caused the error, if applicable.
     """
 
     def __init__(
@@ -406,12 +341,6 @@ class RetryExhaustedError(MeandraError):
     **details : Any
         Additional structured error information.
 
-    Attributes
-    ----------
-    attempts : int
-        Number of attempts made.
-    last_error : Exception
-        The last exception that occurred.
     """
 
     def __init__(

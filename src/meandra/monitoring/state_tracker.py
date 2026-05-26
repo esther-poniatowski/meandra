@@ -3,19 +3,6 @@ meandra.monitoring.state_tracker
 ================================
 
 Track workflow and node execution state.
-
-Classes
--------
-NodeState
-    Possible states for a node during execution.
-NodeExecution
-    Record of a node execution.
-StateTracker
-    Abstract base class for tracking workflow execution state.
-InMemoryStateTracker
-    Track execution state in memory.
-FileStateTracker
-    Persist execution state as JSON lines with query support.
 """
 
 from abc import ABC, abstractmethod
@@ -45,28 +32,20 @@ class NodeState(str, Enum):
 class NodeExecution:
     """Record of a node execution.
 
-    Attributes
-    ----------
-    node_name : str
-        Name of the executed node.
-    state : NodeState
-        Current state of the node.
-    start_time : Optional[datetime]
-        Timestamp when execution started.
-    end_time : Optional[datetime]
-        Timestamp when execution ended.
-    error : Optional[str]
-        Error message if the node failed.
-    outputs : Optional[Dict[str, Any]]
-        Output data produced by the node.
     """
 
     node_name: str
+    """Name of the executed node."""
     state: NodeState = NodeState.PENDING
+    """Current state of the node."""
     start_time: Optional[datetime] = None
+    """Timestamp when execution started."""
     end_time: Optional[datetime] = None
+    """Timestamp when execution ended."""
     error: Optional[str] = None
+    """Error message if the node failed."""
     outputs: Optional[Dict[str, Any]] = None
+    """Output data produced by the node."""
 
 
 class StateTracker(ABC):
@@ -181,15 +160,6 @@ class InMemoryStateTracker(StateTracker):
         Name of the workflow being tracked.
     run_id : str
         Unique identifier for the current run.
-
-    Attributes
-    ----------
-    run_id : str
-        Unique identifier for the current run.
-    workflow_name : str
-        Name of the workflow being tracked.
-    executions : Dict[str, NodeExecution]
-        Mapping of node names to execution records.
 
     Examples
     --------
@@ -391,15 +361,6 @@ class FileStateTracker(StateTracker):
     run_id : str
         Unique run identifier.
     path : str or Path
-        Path to the log file.
-
-    Attributes
-    ----------
-    workflow_name : str
-        Name of the workflow being tracked.
-    run_id : str
-        Unique run identifier.
-    path : Path
         Path to the log file.
 
     Examples

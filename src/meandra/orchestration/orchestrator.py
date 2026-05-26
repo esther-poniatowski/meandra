@@ -3,27 +3,6 @@ meandra.orchestration.orchestrator
 ==================================
 
 Workflow execution orchestration.
-
-Classes
--------
-HookEvent
-    Lifecycle events for workflow execution.
-WorkflowExecutionError
-    Raised when workflow execution fails.
-Orchestrator
-    Abstract base class for workflow execution.
-WorkflowState
-    Explicit runtime state segmented into workflow inputs and produced artifacts.
-InputResolver
-    Resolve node inputs from the explicit workflow state.
-LifecycleEvents
-    Manage lifecycle hooks separately from execution policy.
-ResumePolicy
-    Build explicit resume plans from checkpoint state.
-ExecutionEngine
-    Runtime engine composed from smaller collaborators instead of one sink object.
-SchedulingOrchestrator
-    Execute workflows using explicit runtime services and a scheduler.
 """
 
 from __future__ import annotations
@@ -134,19 +113,14 @@ class WorkflowState:
     """
     Explicit runtime state segmented into workflow inputs and produced artifacts.
 
-    Attributes
-    ----------
-    inputs : Dict[str, Any]
-        Initial workflow inputs.
-    artifacts : Dict[str, Any]
-        Outputs produced by executed nodes.
-    node_outputs : Dict[str, Dict[str, Any]]
-        Per-node output mapping.
     """
 
     inputs: Dict[str, Any]
+    """Initial workflow inputs."""
     artifacts: Dict[str, Any] = field(default_factory=dict)
+    """Outputs produced by executed nodes."""
     node_outputs: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    """Per-node output mapping."""
 
     @classmethod
     def from_resume(
@@ -703,10 +677,6 @@ class SchedulingOrchestrator(Orchestrator):
     max_workers : Optional[int]
         Maximum threads for parallel layer execution, or ``None`` for serial.
 
-    Attributes
-    ----------
-    scheduler : Scheduler
-        The scheduling strategy used to resolve node ordering.
     """
 
     def __init__(

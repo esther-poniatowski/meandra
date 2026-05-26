@@ -3,36 +3,6 @@ meandra.datastore.io_handlers
 =============================
 
 I/O handlers for various file formats.
-
-Classes
--------
-IOHandler
-    Abstract base class for file I/O operations.
-PickleHandler
-    Handler for Python pickle files.
-NumpyHandler
-    Handler for NumPy array files.
-JSONHandler
-    Handler for JSON files.
-YAMLHandler
-    Handler for YAML files.
-HandlerRegistry
-    Registry of IOHandlers by file extension.
-
-Functions
----------
-register_handler
-    Register a handler in the default registry.
-register_default_handlers
-    Register the default handlers if none are registered.
-reset_default_registry
-    Reset the default registry to a fresh state with default handlers.
-get_handler
-    Get appropriate handler for a file path.
-read_file
-    Read data from a file using the appropriate handler.
-write_file
-    Write data to a file using the appropriate handler.
 """
 
 from abc import ABC, abstractmethod
@@ -52,10 +22,6 @@ class IOHandler(ABC):
     Each handler supports specific file formats and provides read/write
     operations for data persistence.
 
-    Attributes
-    ----------
-    EXTENSIONS : List[str]
-        File extensions this handler supports.
     """
 
     EXTENSIONS: List[str] = []
@@ -238,11 +204,6 @@ class JSONHandler(IOHandler):
     indent : int
         Number of spaces for JSON indentation.
 
-    Attributes
-    ----------
-    indent : int
-        Number of spaces for JSON indentation.
-
     Examples
     --------
     >>> handler = JSONHandler()
@@ -363,11 +324,6 @@ class HandlerRegistry:
     ----------
     register_defaults : bool
         If True, register default handlers on creation.
-
-    Attributes
-    ----------
-    _handlers : Dict[str, IOHandler]
-        Mapping of file extensions to their handlers.
 
     Examples
     --------

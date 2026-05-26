@@ -3,17 +3,6 @@ meandra.checkpoint.manager
 ==========================
 
 Checkpoint management for workflow resumption.
-
-Classes
--------
-CheckpointInfo
-    Summary information about a checkpoint.
-Checkpoint
-    A loaded checkpoint with data and metadata.
-ResumePlan
-    Explicit plan describing how a workflow may safely resume.
-CheckpointManager
-    Manage workflow checkpoints for resumption.
 """
 
 from dataclasses import dataclass
@@ -35,34 +24,24 @@ class CheckpointInfo:
     """
     Summary information about a checkpoint.
 
-    Attributes
-    ----------
-    checkpoint_id : str
-        Unique checkpoint identifier.
-    workflow_name : str
-        Name of the workflow.
-    node_name : str
-        Name of the node that was checkpointed.
-    node_index : int
-        Index of the node in execution order.
-    run_id : str
-        Unique run identifier.
-    timestamp : str
-        Timestamp of the checkpoint.
-    workflow_hash : Optional[str]
-        Hash of the workflow structure at checkpoint time.
-    completed_nodes : tuple[str, ...]
-        Names of nodes completed before this checkpoint.
     """
 
     checkpoint_id: str
+    """Unique checkpoint identifier."""
     workflow_name: str
+    """Name of the workflow."""
     node_name: str
+    """Name of the node that was checkpointed."""
     node_index: int
+    """Index of the node in execution order."""
     run_id: str
+    """Unique run identifier."""
     timestamp: str
+    """Timestamp of the checkpoint."""
     workflow_hash: Optional[str] = None
+    """Hash of the workflow structure at checkpoint time."""
     completed_nodes: tuple[str, ...] = ()
+    """Names of nodes completed before this checkpoint."""
 
 
 @dataclass
@@ -70,22 +49,16 @@ class Checkpoint:
     """
     A loaded checkpoint with data and metadata.
 
-    Attributes
-    ----------
-    info : CheckpointInfo
-        Summary information about the checkpoint.
-    data : Any
-        Node output data.
-    context : Dict[str, Any]
-        Execution context saved with the checkpoint.
-    state : Dict[str, Dict[str, Any]]
-        Workflow state at checkpoint time.
     """
 
     info: CheckpointInfo
+    """Summary information about the checkpoint."""
     data: Any
+    """Node output data."""
     context: Dict[str, Any]
+    """Execution context saved with the checkpoint."""
     state: Dict[str, Dict[str, Any]]
+    """Workflow state at checkpoint time."""
 
 
 @dataclass(frozen=True)
@@ -93,25 +66,18 @@ class ResumePlan:
     """
     Explicit plan describing how a workflow may safely resume.
 
-    Attributes
-    ----------
-    checkpoint_id : str
-        Identifier of the checkpoint to resume from.
-    run_id : str
-        Run identifier for the resumed execution.
-    completed_nodes : tuple[str, ...]
-        Names of nodes already completed.
-    context : Dict[str, Any]
-        Execution context to restore.
-    state : Dict[str, Dict[str, Any]]
-        Workflow state to restore.
     """
 
     checkpoint_id: str
+    """Identifier of the checkpoint to resume from."""
     run_id: str
+    """Run identifier for the resumed execution."""
     completed_nodes: tuple[str, ...]
+    """Names of nodes already completed."""
     context: Dict[str, Any]
+    """Execution context to restore."""
     state: Dict[str, Dict[str, Any]]
+    """Workflow state to restore."""
 
 
 class CheckpointManager:
@@ -122,11 +88,6 @@ class CheckpointManager:
     loading, and managing checkpoints during workflow execution.
 
     Parameters
-    ----------
-    storage : CheckpointStorage
-        Storage backend for checkpoints.
-
-    Attributes
     ----------
     storage : CheckpointStorage
         Storage backend for checkpoints.

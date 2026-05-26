@@ -27,17 +27,6 @@ Validate a configuration:
 Show workflow info:
 
     meandra info
-
-Functions
----------
-cli_info
-    Display version and platform diagnostics.
-cli_run
-    Run a workflow from a decorated pipeline class.
-cli_validate
-    Validate a configuration file.
-cli_graph
-    Display or export the workflow graph.
 """
 
 import importlib

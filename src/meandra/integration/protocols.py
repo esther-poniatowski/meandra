@@ -3,15 +3,6 @@ meandra.integration.protocols
 =============================
 
 Stable extension seams for workflow and IO integrations.
-
-Classes
--------
-NodeTransformer
-    Transform a node without depending on its concrete field layout.
-WorkflowTransformer
-    Transform a workflow through the stable workflow seam.
-IOBackendDescriptor
-    Descriptor for a data backend keyed by file extension.
 """
 
 from __future__ import annotations
@@ -71,19 +62,14 @@ class IOBackendDescriptor:
     """
     Descriptor for a data backend keyed by file extension.
 
-    Attributes
-    ----------
-    extension : str
-        File extension this backend handles.
-    saver_name : str
-        Name of the saver class in the backend module.
-    loader_name : str
-        Name of the loader class in the backend module.
     """
 
     extension: str
+    """File extension this backend handles."""
     saver_name: str
+    """Name of the saver class in the backend module."""
     loader_name: str
+    """Name of the loader class in the backend module."""
 
     def resolve_saver(self, module: Any) -> Optional[Type["Saver"]]:
         """

@@ -3,13 +3,6 @@ meandra.scheduling.scheduler
 ============================
 
 Workflow scheduling and dependency resolution.
-
-Classes
--------
-Scheduler
-    Abstract base class for scheduling tasks within a workflow.
-DAGScheduler
-    Schedule workflow execution using topological sort.
 """
 
 from abc import ABC, abstractmethod

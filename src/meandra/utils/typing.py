@@ -3,11 +3,6 @@ meandra.utils.typing
 ====================
 
 Type checking utilities for runtime type validation.
-
-Functions
----------
-check_type
-    Check if a value matches an expected type, supporting generics.
 """
 
 from typing import Any, Dict, List, Type, Union, get_origin, get_args, Annotated, Literal

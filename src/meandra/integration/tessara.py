@@ -3,13 +3,6 @@ meandra.integration.tessara
 ===========================
 
 Integration adapters for Tessara parameter management.
-
-Classes
--------
-TessaraNodeAdapter
-    Adapts Tessara parameters for injection into Meandra nodes.
-SweepOrchestrator
-    Executes workflows across all parameter combinations from a ParamSweeper.
 """
 
 from __future__ import annotations
@@ -44,11 +37,6 @@ class TessaraNodeAdapter:
         Tessara parameter set containing parameters to inject.
     validate : bool, optional
         Whether to validate parameter values before injection.
-
-    Attributes
-    ----------
-    params : ParameterSet
-        The Tessara parameter set to inject into nodes.
 
     Examples
     --------
@@ -337,13 +325,6 @@ class SweepOrchestrator:
         Meandra orchestrator for workflow execution.
     sweeper : ParamSweeper
         Tessara parameter sweeper for generating combinations.
-
-    Attributes
-    ----------
-    orchestrator : Orchestrator
-        The underlying orchestrator for workflow execution.
-    sweeper : ParamSweeper
-        Tessara parameter sweeper providing combinations.
 
     Examples
     --------

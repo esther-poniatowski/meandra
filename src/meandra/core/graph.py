@@ -3,11 +3,6 @@ meandra.core.graph
 ==================
 
 Graph algorithms shared across the framework.
-
-Functions
----------
-topological_layers
-    Compute a layered topological ordering using Kahn's algorithm.
 """
 
 from collections import deque

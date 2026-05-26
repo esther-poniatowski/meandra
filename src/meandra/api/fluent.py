@@ -28,20 +28,6 @@ Examples
 ...     .add(step(process).in_("data").out("result").depends_on("load_data"))
 ...     .build()
 ... )
-
-Classes
--------
-StepBuilder
-    Fluent builder for creating a Node.
-PipelineBuilder
-    Fluent builder for creating a Workflow.
-
-Functions
----------
-step
-    Create a StepBuilder from a callable.
-pipe
-    Create a PipelineBuilder.
 """
 
 from dataclasses import dataclass, field
@@ -57,23 +43,6 @@ class StepBuilder:
     """
     Fluent builder for creating a Node.
 
-    Attributes
-    ----------
-    func : Callable
-        The function to execute for this node.
-    name : Optional[str]
-        Node name. If None, uses function name.
-    inputs : List[str]
-        Input keys the node expects.
-    outputs : List[str]
-        Output keys the node produces.
-    dependencies : List[str]
-        Names of nodes this node depends on.
-    is_checkpointable : bool
-        Whether the node supports checkpointing.
-    accepts_context : bool
-        Whether the node receives full context.
-
     Examples
     --------
     >>> builder = step(my_func).in_("x", "y").out("z").depends_on("loader")
@@ -81,12 +50,19 @@ class StepBuilder:
     """
 
     func: Callable[[Dict[str, Any]], Any]
+    """The function to execute for this node."""
     name: Optional[str] = None
+    """Node name. If None, uses function name."""
     inputs: List[str] = field(default_factory=list)
+    """Input keys the node expects."""
     outputs: List[str] = field(default_factory=list)
+    """Output keys the node produces."""
     dependencies: List[str] = field(default_factory=list)
+    """Names of nodes this node depends on."""
     is_checkpointable: bool = False
+    """Whether the node supports checkpointing."""
     accepts_context: bool = False
+    """Whether the node receives full context."""
     input_contract: Optional[Callable[[Dict[str, Any]], None]] = None
     output_contract: Optional[Callable[[Dict[str, Any]], None]] = None
 
@@ -260,13 +236,6 @@ class PipelineBuilder:
     """
     Fluent builder for creating a Workflow.
 
-    Attributes
-    ----------
-    name : str
-        Workflow name.
-    steps : List[StepBuilder]
-        Steps to include in the workflow.
-
     Examples
     --------
     >>> workflow = (
@@ -278,7 +247,9 @@ class PipelineBuilder:
     """
 
     name: str
+    """Workflow name."""
     steps: List[StepBuilder] = field(default_factory=list)
+    """Steps to include in the workflow."""
 
     def add(self, step: StepBuilder) -> "PipelineBuilder":
         """

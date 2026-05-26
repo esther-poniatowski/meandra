@@ -3,13 +3,6 @@ meandra.datastore.catalog
 =========================
 
 Data catalog for named dataset management.
-
-Classes
--------
-DatasetEntry
-    Entry in the data catalog.
-DataCatalog
-    Named dataset registry with path templating.
 """
 
 from dataclasses import dataclass, field
@@ -31,25 +24,18 @@ class DatasetEntry:
     """
     Entry in the data catalog.
 
-    Attributes
-    ----------
-    name : str
-        Logical name for the dataset.
-    path_template : str
-        Path template with optional placeholders.
-    handler : Optional[IOHandler]
-        Handler for this dataset.
-    description : str
-        Description of the dataset.
-    metadata : Dict[str, Any]
-        Additional metadata for the entry.
     """
 
     name: str
+    """Logical name for the dataset."""
     path_template: str
+    """Path template with optional placeholders."""
     handler: Optional[IOHandler] = None
+    """Handler for this dataset."""
     description: str = ""
+    """Description of the dataset."""
     metadata: Dict[str, Any] = field(default_factory=dict)
+    """Additional metadata for the entry."""
 
     def resolve_path(self, **kwargs: Any) -> Path:
         """
@@ -121,11 +107,6 @@ class DataCatalog:
         Base directory for relative paths.
     registry : Optional[HandlerRegistry]
         Handler registry for format detection.
-
-    Attributes
-    ----------
-    base_dir : Path
-        Base directory for relative paths.
 
     Examples
     --------

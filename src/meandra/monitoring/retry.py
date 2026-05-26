@@ -3,20 +3,6 @@ meandra.monitoring.retry
 ========================
 
 Retry utilities with exponential backoff.
-
-Classes
--------
-RetryConfig
-    Configuration for retry behavior.
-RetryContext
-    Context manager for retryable code blocks.
-
-Functions
----------
-retry
-    Decorator that retries a function with exponential backoff.
-execute_with_retry
-    Execute a function with retry logic.
 """
 
 import logging
@@ -39,28 +25,20 @@ class RetryConfig:
     """
     Configuration for retry behavior.
 
-    Attributes
-    ----------
-    max_attempts : int
-        Maximum number of attempts (including initial attempt).
-    base_delay : float
-        Initial delay between retries in seconds.
-    max_delay : float
-        Maximum delay between retries in seconds.
-    exponential_base : float
-        Base for exponential backoff calculation.
-    jitter : bool
-        Whether to add random jitter to delays.
-    retryable_exceptions : Tuple[Type[Exception], ...]
-        Exception types that should trigger a retry.
     """
 
     max_attempts: int = 3
+    """Maximum number of attempts (including initial attempt)."""
     base_delay: float = 1.0
+    """Initial delay between retries in seconds."""
     max_delay: float = 60.0
+    """Maximum delay between retries in seconds."""
     exponential_base: float = 2.0
+    """Base for exponential backoff calculation."""
     jitter: bool = True
+    """Whether to add random jitter to delays."""
     retryable_exceptions: Tuple[Type[Exception], ...] = (Exception,)
+    """Exception types that should trigger a retry."""
 
     def calculate_delay(self, attempt: int) -> float:
         """
@@ -236,11 +214,6 @@ class RetryContext:
     Context manager for retryable code blocks.
 
     Parameters
-    ----------
-    config : RetryConfig
-        Retry configuration governing attempts and delays.
-
-    Attributes
     ----------
     config : RetryConfig
         Retry configuration governing attempts and delays.

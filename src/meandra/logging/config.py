@@ -3,20 +3,6 @@ meandra.logging.config
 ======================
 
 Logging configuration and utilities.
-
-Classes
--------
-LogLevel
-    Log level enumeration.
-StructuredFormatter
-    Formatter that includes structured context in log messages.
-
-Functions
----------
-configure_logging
-    Configure logging for Meandra.
-get_logger
-    Get a logger for a Meandra module.
 """
 
 import logging
@@ -54,10 +40,6 @@ class StructuredFormatter(logging.Formatter):
     include_context : bool
         Whether to include workflow context in log messages. Default True.
 
-    Attributes
-    ----------
-    include_context : bool
-        Whether to inject workflow context into log messages.
     """
 
     def __init__(
