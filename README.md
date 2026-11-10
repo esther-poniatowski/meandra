@@ -85,7 +85,7 @@ for non-linear, hierarchical workflows with precise parameter control.
 Run a pipeline from a Python module:
 
 ```sh
-meandra run my_module:MyPipeline --config config.yaml
+meandra run my_module:MyPipeline --inputs inputs.yaml
 ```
 
 Override parameters at runtime:

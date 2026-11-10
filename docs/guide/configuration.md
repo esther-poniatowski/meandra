@@ -1,7 +1,10 @@
 # Configuration
 
-Meandra accepts pipeline inputs as JSON or YAML files, passed via `--config`
-on the CLI or loaded directly in Python. Parameter overrides merge on top of
+Meandra accepts pipeline inputs as JSON or YAML files, passed via `--inputs`
+on the CLI or loaded directly in Python. An inputs file is a run input of one
+pipeline, not a settings file of Meandra: the command-line conventions of the
+workspace reserve `--config` for the settings file of a tool, and Meandra has
+none. Parameter overrides merge on top of
 file-based configuration.
 
 ## File Formats
@@ -35,16 +38,17 @@ YAML requires `pyyaml` (`pip install pyyaml`). JSON has no extra dependencies.
 
 ## Loading on the CLI
 
-Pass a configuration file with `--config` / `-c`:
+Pass an inputs file with `--inputs` / `-i`. Its path is relative to the
+current folder:
 
 ```sh
-meandra run mymodule:MyPipeline --config config.yaml
+meandra run mymodule:MyPipeline --inputs inputs.yaml
 ```
 
 Override or add individual parameters with `--param` / `-p`:
 
 ```sh
-meandra run mymodule:MyPipeline -c config.yaml -p learning_rate=0.0001 -p epochs=200
+meandra run mymodule:MyPipeline -i inputs.yaml -p learning_rate=0.0001 -p epochs=200
 ```
 
 Parameter overrides take precedence over file values. The CLI parses override
@@ -111,18 +115,18 @@ result = orchestrator.run(workflow, provider)
 
 ## Validation
 
-Validate a configuration file against a pipeline before execution:
+Validate an inputs file against a pipeline before execution:
 
 ```sh
-meandra validate config.yaml --pipeline mymodule:MyPipeline
+meandra validate inputs.yaml --pipeline mymodule:MyPipeline
 ```
 
 The `validate` command:
 
 1. Parses the file (JSON or YAML).
 2. Builds the pipeline workflow graph.
-3. Compares configuration keys against required inputs.
-4. Reports missing keys as warnings.
+3. Compares the keys of the file against required inputs.
+4. Reports missing keys as errors, and exits with status 1.
 
 Programmatic validation:
 

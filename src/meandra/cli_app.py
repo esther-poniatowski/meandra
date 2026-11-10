@@ -6,23 +6,29 @@ Command-line interface for the meandra package.
 
 Provides commands for:
 - Running workflows from decorated pipeline classes
-- Validating workflow configurations
+- Validating the inputs file of a run
 - Inspecting workflow structure
 
 Notes
 -----
 This module is the entry point for the ``meandra`` command-line tool,
-powered by Typer.
+powered by Typer. The options follow the command-line conventions of the
+workspace. Meandra has no settings file and works on no project root: the
+inputs file of a run is a run input, named by ``--inputs``, since the
+conventions reserve ``--config`` for the settings file of a tool.
+
+The exit status is 0 on success, 1 when a validation or a run finds a
+problem, and 2 on a usage error.
 
 Examples
 --------
 Run a pipeline:
 
-    meandra run mymodule:MyPipeline --config config.yaml
+    meandra run mymodule:MyPipeline --inputs inputs.yaml
 
-Validate a configuration:
+Validate an inputs file:
 
-    meandra validate config.yaml --pipeline mymodule:MyPipeline
+    meandra validate inputs.yaml --pipeline mymodule:MyPipeline
 
 Show workflow info:
 
@@ -38,6 +44,58 @@ from typing import Any, Dict, Optional, Type
 import typer
 
 from meandra import __version__, info
+
+
+EXIT_PROBLEM = 1
+"""Exit status of a validation or a run that finds a problem."""
+
+EXIT_USAGE = 2
+"""Exit status of a usage error, such as a malformed option value."""
+
+
+def _usage_error(message: str) -> typer.Exit:
+    """
+    Print a usage error and return the exit that carries its status.
+
+    Parameters
+    ----------
+    message : str
+        Description of the error.
+
+    Returns
+    -------
+    typer.Exit
+        Exit with status `EXIT_USAGE`, to be raised by the caller.
+    """
+    typer.echo(f"Error: {message}", err=True)
+    return typer.Exit(code=EXIT_USAGE)
+
+
+def _require_pipeline_spec(pipeline_cls: Type[Any]) -> Any:
+    """
+    Return the specification of a decorated pipeline class.
+
+    Parameters
+    ----------
+    pipeline_cls : Type[Any]
+        Class named on the command line.
+
+    Returns
+    -------
+    PipelineSpec
+        Specification attached by the ``@pipeline`` decorator.
+
+    Raises
+    ------
+    typer.Exit
+        With status `EXIT_USAGE` when the class is not decorated.
+    """
+    from meandra.api.decorators import get_pipeline_spec
+
+    spec = get_pipeline_spec(pipeline_cls)
+    if spec is None:
+        raise _usage_error(f"{pipeline_cls.__name__} is not decorated with @pipeline")
+    return spec
 
 
 app = typer.Typer(
@@ -88,21 +146,21 @@ def _import_pipeline(module_path: str) -> Type[Any]:
     return getattr(module, class_name)
 
 
-def _load_config(config_path: Path) -> Dict[str, Any]:
+def _load_inputs(config_path: Path) -> Dict[str, Any]:
     """
-    Load configuration from a file.
+    Load the inputs of a run from a file.
 
     Supports JSON and YAML formats.
 
     Parameters
     ----------
     config_path : Path
-        Path to configuration file.
+        Path to the inputs file, relative to the current folder.
 
     Returns
     -------
     Dict[str, Any]
-        Configuration dictionary.
+        Inputs dictionary.
 
     Raises
     ------
@@ -110,7 +168,7 @@ def _load_config(config_path: Path) -> Dict[str, Any]:
         If file cannot be read or parsed.
     """
     if not config_path.exists():
-        raise typer.BadParameter(f"Configuration file not found: {config_path}")
+        raise typer.BadParameter(f"Inputs file not found: {config_path}")
 
     suffix = config_path.suffix.lower()
 
@@ -139,10 +197,10 @@ def _load_config(config_path: Path) -> Dict[str, Any]:
                     return yaml.safe_load(content) or {}
                 except ImportError:
                     raise typer.BadParameter(
-                        f"Unknown config format '{suffix}' and YAML not available"
+                        f"Unknown inputs format '{suffix}' and YAML not available"
                     )
     except Exception as e:
-        raise typer.BadParameter(f"Failed to load config: {e}")
+        raise typer.BadParameter(f"Failed to load inputs: {e}")
 
 
 @app.command("info")
@@ -157,11 +215,11 @@ def cli_run(
         ...,
         help="Pipeline to run in format 'module:ClassName'",
     ),
-    config: Optional[Path] = typer.Option(
+    inputs_file: Optional[Path] = typer.Option(
         None,
-        "--config",
-        "-c",
-        help="Path to configuration file (JSON or YAML)",
+        "--inputs",
+        "-i",
+        help="Path to the inputs file of the run (JSON or YAML)",
         exists=False,  # We handle existence check ourselves
     ),
     param: Optional[list[str]] = typer.Option(
@@ -179,7 +237,6 @@ def cli_run(
     verbose: bool = typer.Option(
         False,
         "--verbose",
-        "-v",
         help="Enable verbose output",
     ),
 ) -> None:
@@ -190,8 +247,8 @@ def cli_run(
     ----------
     pipeline : str
         Pipeline to run in format 'module:ClassName'.
-    config : Optional[Path]
-        Path to configuration file (JSON or YAML).
+    inputs_file : Optional[Path]
+        Path to the inputs file of the run (JSON or YAML).
     param : Optional[list[str]]
         Override parameters in format 'key=value'.
     output : Optional[Path]
@@ -205,38 +262,28 @@ def cli_run(
 
         meandra run mymodule:MyPipeline
 
-        meandra run mymodule:MyPipeline --config config.yaml
+        meandra run mymodule:MyPipeline --inputs inputs.yaml
 
         meandra run mymodule:MyPipeline -p data_path=/path/to/data
     """
-    from meandra.api.decorators import get_pipeline_spec, build_workflow
+    from meandra.api.decorators import build_workflow
     from meandra.core.errors import ValidationError as WorkflowValidationError, DependencyResolutionError
     from meandra.orchestration.orchestrator import SchedulingOrchestrator
 
     # Import the pipeline class
     pipeline_cls = _import_pipeline(pipeline)
+    spec = _require_pipeline_spec(pipeline_cls)
 
-    # Validate it's a decorated pipeline
-    spec = get_pipeline_spec(pipeline_cls)
-    if spec is None:
-        typer.echo(
-            f"Error: {pipeline_cls.__name__} is not decorated with @pipeline",
-            err=True,
-        )
-        raise typer.Exit(code=1)
-
-    # Load configuration
+    # Load the inputs file
     inputs: Dict[str, Any] = {}
-    if config is not None:
-        config_path = Path(config)
-        inputs = _load_config(config_path)
+    if inputs_file is not None:
+        inputs = _load_inputs(Path(inputs_file))
 
     # Apply parameter overrides
     if param:
         for p in param:
             if "=" not in p:
-                typer.echo(f"Error: Invalid parameter format '{p}'. Use 'key=value'", err=True)
-                raise typer.Exit(code=1)
+                raise _usage_error(f"Invalid parameter format '{p}'. Use 'key=value'")
             key, value = p.split("=", 1)
             # Try to parse as JSON for complex values
             try:
@@ -253,7 +300,7 @@ def cli_run(
         )
     except (WorkflowValidationError, DependencyResolutionError, ValueError) as exc:
         typer.echo(f"Error: {exc}", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=EXIT_PROBLEM)
 
     if verbose:
         typer.echo(f"Running pipeline: {spec.name}")
@@ -282,14 +329,15 @@ def cli_run(
             import traceback
 
             typer.echo(traceback.format_exc(), err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=EXIT_PROBLEM)
 
 
 @app.command("validate")
 def cli_validate(
-    config: Path = typer.Argument(
+    inputs_file: Path = typer.Argument(
         ...,
-        help="Path to configuration file to validate",
+        metavar="INPUTS",
+        help="Path to the inputs file to validate",
         exists=True,
     ),
     pipeline: Optional[str] = typer.Option(
@@ -301,20 +349,19 @@ def cli_validate(
     verbose: bool = typer.Option(
         False,
         "--verbose",
-        "-v",
         help="Enable verbose output",
     ),
 ) -> None:
     """
-    Validate a configuration file.
+    Validate an inputs file.
 
-    If --pipeline is provided, validates the config against the pipeline's
-    expected inputs.
+    If --pipeline is provided, validates the inputs against the pipeline's
+    expected inputs, and exits with status 1 when one is missing.
 
     Parameters
     ----------
-    config : Path
-        Path to configuration file to validate.
+    inputs_file : Path
+        Path to the inputs file to validate.
     pipeline : Optional[str]
         Pipeline to validate against in format 'module:ClassName'.
     verbose : bool
@@ -324,31 +371,24 @@ def cli_validate(
     --------
     ::
 
-        meandra validate config.yaml
+        meandra validate inputs.yaml
 
-        meandra validate config.yaml --pipeline mymodule:MyPipeline
+        meandra validate inputs.yaml --pipeline mymodule:MyPipeline
     """
-    from meandra.api.decorators import get_pipeline_spec, build_workflow
+    from meandra.api.decorators import build_workflow
     from meandra.core.errors import ValidationError as WorkflowValidationError, DependencyResolutionError
 
-    # Load configuration
-    config_data = _load_config(config)
+    # Load the inputs file
+    config_data = _load_inputs(inputs_file)
 
     if verbose:
-        typer.echo(f"Loaded configuration from: {config}")
+        typer.echo(f"Loaded inputs from: {inputs_file}")
         typer.echo(f"Keys: {list(config_data.keys())}")
 
     # Validate against pipeline if provided
     if pipeline:
         pipeline_cls = _import_pipeline(pipeline)
-
-        spec = get_pipeline_spec(pipeline_cls)
-        if spec is None:
-            typer.echo(
-                f"Error: {pipeline_cls.__name__} is not decorated with @pipeline",
-                err=True,
-            )
-            raise typer.Exit(code=1)
+        spec = _require_pipeline_spec(pipeline_cls)
 
         # Build workflow to get input requirements
         try:
@@ -359,7 +399,7 @@ def cli_validate(
             )
         except (WorkflowValidationError, DependencyResolutionError, ValueError) as exc:
             typer.echo(f"Error: {exc}", err=True)
-            raise typer.Exit(code=1)
+            raise typer.Exit(code=EXIT_PROBLEM)
 
         # Collect all required inputs
         required_inputs = spec.required_inputs()
@@ -369,17 +409,17 @@ def cli_validate(
         missing = required_inputs - provided
 
         if missing:
-            typer.echo(f"Warning: Missing inputs: {sorted(missing)}", err=True)
-        else:
-            if verbose:
-                typer.echo(f"All required inputs provided")
+            typer.echo(f"Error: Missing inputs: {sorted(missing)}", err=True)
+            raise typer.Exit(code=EXIT_PROBLEM)
+        if verbose:
+            typer.echo("All required inputs provided")
 
         # Check for extra keys
         extra = provided - required_inputs
         if extra and verbose:
-            typer.echo(f"Extra keys in config: {sorted(extra)}")
+            typer.echo(f"Extra keys in the inputs file: {sorted(extra)}")
 
-    typer.echo(f"Configuration is valid: {config}")
+    typer.echo(f"Inputs file is valid: {inputs_file}")
 
 
 @app.command("graph")
@@ -415,24 +455,17 @@ def cli_graph(
 
         meandra graph mymodule:MyPipeline --output workflow.dot
     """
-    from meandra.api.decorators import get_pipeline_spec, build_workflow
+    from meandra.api.decorators import build_workflow
     from meandra.core.errors import ValidationError as WorkflowValidationError, DependencyResolutionError
 
     pipeline_cls = _import_pipeline(pipeline)
-
-    spec = get_pipeline_spec(pipeline_cls)
-    if spec is None:
-        typer.echo(
-            f"Error: {pipeline_cls.__name__} is not decorated with @pipeline",
-            err=True,
-        )
-        raise typer.Exit(code=1)
+    spec = _require_pipeline_spec(pipeline_cls)
 
     try:
         workflow = build_workflow(pipeline_cls, validate=True)
     except (WorkflowValidationError, DependencyResolutionError, ValueError) as exc:
         typer.echo(f"Error: {exc}", err=True)
-        raise typer.Exit(code=1)
+        raise typer.Exit(code=EXIT_PROBLEM)
 
     # Generate DOT representation
     lines = ["digraph workflow {", f'    label="{spec.name}"', "    rankdir=LR", ""]
@@ -473,23 +506,39 @@ def cli_graph(
                 )
                 if proc.returncode != 0:
                     typer.echo(f"Error: graphviz failed: {proc.stderr}", err=True)
-                    raise typer.Exit(code=1)
+                    raise typer.Exit(code=EXIT_PROBLEM)
                 typer.echo(f"Graph saved to: {output}")
             except FileNotFoundError:
                 typer.echo(
                     "Error: graphviz not found. Install it or use .dot output format",
                     err=True,
                 )
-                raise typer.Exit(code=1)
+                raise typer.Exit(code=EXIT_PROBLEM)
         else:
-            typer.echo(
-                f"Error: Unknown output format '{suffix}'. "
-                "Use .dot, .png, .svg, or .pdf",
-                err=True,
+            raise _usage_error(
+                f"Unknown output format '{suffix}'. Use .dot, .png, .svg, or .pdf"
             )
-            raise typer.Exit(code=1)
     else:
         typer.echo(dot_content)
+
+
+def _print_version(value: bool) -> None:
+    """
+    Print the version and exit, before Click requires a command.
+
+    Parameters
+    ----------
+    value : bool
+        Whether the option ``--version`` was given.
+
+    Raises
+    ------
+    typer.Exit
+        With status 0 after printing the version.
+    """
+    if value:
+        typer.echo(f"meandra {__version__}")
+        raise typer.Exit()
 
 
 @app.callback()
@@ -497,7 +546,9 @@ def main_callback(
     version: bool = typer.Option(
         False,
         "--version",
-        "-V",
+        "-v",
+        is_eager=True,
+        callback=_print_version,
         help="Show the package version and exit.",
     ),
 ) -> None:
@@ -507,11 +558,8 @@ def main_callback(
     Parameters
     ----------
     version : bool
-        Show the package version and exit.
+        Show the package version and exit; handled by `_print_version`.
     """
-    if version:
-        typer.echo(f"meandra {__version__}")
-        raise typer.Exit()
 
 
 if __name__ == "__main__":

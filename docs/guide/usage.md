@@ -90,7 +90,7 @@ missing dependencies and type mismatches early.
 The `run` command executes a pipeline from a Python module reference:
 
 ```sh
-meandra run mymodule:MyPipeline --config config.yaml
+meandra run mymodule:MyPipeline --inputs inputs.yaml
 ```
 
 Override parameters at runtime with `--param` / `-p`:
@@ -102,22 +102,21 @@ meandra run mymodule:MyPipeline -p learning_rate=0.01 -p epochs=50
 Save results to a JSON file with `--output` / `-o`:
 
 ```sh
-meandra run mymodule:MyPipeline --config config.yaml -o results.json
+meandra run mymodule:MyPipeline --inputs inputs.yaml -o results.json
 ```
 
-Enable diagnostic output with `--verbose` / `-v`:
+Enable diagnostic output with `--verbose`, which has no short form:
 
 ```sh
-meandra run mymodule:MyPipeline -v --config config.yaml
+meandra run mymodule:MyPipeline --verbose --inputs inputs.yaml
 ```
 
-## Validating a Configuration
+## Validating an Inputs File
 
-Check a configuration file against a pipeline's expected parameters before
-running:
+Check an inputs file against a pipeline's expected inputs before running:
 
 ```sh
-meandra validate config.yaml --pipeline mymodule:MyPipeline
+meandra validate inputs.yaml --pipeline mymodule:MyPipeline
 ```
 
 ## Visualizing the Workflow Graph

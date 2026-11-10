@@ -7,8 +7,8 @@ Demonstrates a pipeline that accepts configuration parameters.
 Run with:
     python -m examples.configurable_pipeline
 
-Or via CLI with config:
-    meandra run examples.configurable_pipeline:ScalingPipeline --config examples/config.json
+Or via CLI with an inputs file:
+    meandra run examples.configurable_pipeline:ScalingPipeline --inputs examples/config.json
 """
 
 import json

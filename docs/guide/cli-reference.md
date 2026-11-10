@@ -3,11 +3,26 @@
 Meandra exposes four commands through the `meandra` CLI: `run`, `validate`,
 `graph`, and `info`. All commands accept `--help` for inline documentation.
 
+The options follow the
+[command-line conventions](https://github.com/esther-poniatowski/keystone/blob/main/docs/internals/cli-conventions.md)
+of the workspace. Meandra has no settings file and works on no project root,
+so it offers neither `--config` nor `--root`. A path given on the command line
+is relative to the current folder. A command overwrites the file named by
+`--output`, since it derives that file and can regenerate it.
+
+## Exit Codes
+
+| Code | Meaning |
+|---|---|
+| 0 | Success. |
+| 1 | A validation or a run finds a problem: an invalid workflow graph, missing inputs, a failed execution, or a failed Graphviz export. |
+| 2 | A usage error: an unknown option, a malformed `--param`, an invalid pipeline path, a class without `@pipeline`, a missing or unreadable inputs file, or an unknown graph format. |
+
 ## Global Options
 
 | Option | Short | Description |
 |---|---|---|
-| `--version` | `-V` | Print the package version and exit. |
+| `--version` | `-v` | Print the package version and exit. |
 | `--help` | | Show top-level help. |
 
 ```sh
@@ -33,17 +48,17 @@ meandra run <pipeline> [OPTIONS]
 
 | Option | Short | Type | Default | Description |
 |---|---|---|---|---|
-| `--config` | `-c` | `PATH` | None | Path to a configuration file (JSON or YAML). |
+| `--inputs` | `-i` | `PATH` | None | Path to the inputs file of the run (JSON or YAML), relative to the current folder. |
 | `--param` | `-p` | `TEXT` | None | Override a parameter as `key=value`. Repeatable. Values are parsed as JSON when possible; otherwise treated as strings. |
 | `--output` | `-o` | `PATH` | None | Save workflow outputs to a JSON file instead of printing to stdout. |
-| `--verbose` | `-v` | flag | `false` | Print pipeline name, node list, and inputs before execution; print traceback on failure. |
+| `--verbose` | | flag | `false` | Print pipeline name, node list, and inputs before execution; print traceback on failure. |
 
 ### Examples
 
-Run with a YAML config:
+Run with a YAML inputs file:
 
 ```sh
-meandra run analysis.pipeline:Main --config params.yaml
+meandra run analysis.pipeline:Main --inputs params.yaml
 ```
 
 Override two parameters and save results:
@@ -55,72 +70,65 @@ meandra run analysis.pipeline:Main -p lr=0.001 -p epochs=50 -o results.json
 Verbose execution for debugging:
 
 ```sh
-meandra run analysis.pipeline:Main -v --config params.yaml
+meandra run analysis.pipeline:Main --verbose --inputs params.yaml
 ```
 
 ### Behavior
 
 1. The CLI imports the pipeline class from the given module path.
 2. `@pipeline`-decorated methods are assembled into a `Workflow`.
-3. Configuration (if provided) loads from JSON or YAML.
-4. Parameter overrides (`--param`) merge into the configuration dict. JSON-
+3. The inputs file (if provided) loads from JSON or YAML.
+4. Parameter overrides (`--param`) merge into the inputs dict. JSON-
    parseable values are converted automatically (numbers, booleans, arrays).
 5. The workflow graph validates before execution.
 6. `SchedulingOrchestrator` runs the workflow.
 7. Outputs print as JSON to stdout, or write to the file specified by
    `--output`.
 
-### Exit Codes
-
-| Code | Meaning |
-|---|---|
-| 0 | Successful execution. |
-| 1 | Invalid pipeline path, import failure, validation error, or execution failure. |
-
 ---
 
 ## `meandra validate`
 
-Validate a configuration file, optionally against a specific pipeline.
+Validate an inputs file, optionally against a specific pipeline.
 
 ```sh
-meandra validate <config> [OPTIONS]
+meandra validate <inputs> [OPTIONS]
 ```
 
 ### Arguments
 
 | Argument | Description |
 |---|---|
-| `config` | Path to the configuration file to validate (must exist). |
+| `inputs` | Path to the inputs file to validate (must exist). |
 
 ### Options
 
 | Option | Short | Type | Default | Description |
 |---|---|---|---|---|
 | `--pipeline` | `-p` | `TEXT` | None | Pipeline to validate against, in `module:ClassName` format. When provided, the command checks that all required inputs are present. |
-| `--verbose` | `-v` | flag | `false` | Print loaded keys and extra-key warnings. |
+| `--verbose` | | flag | `false` | Print loaded keys and extra keys. |
 
 ### Examples
 
 Validate file syntax only:
 
 ```sh
-meandra validate config.yaml
+meandra validate inputs.yaml
 ```
 
 Validate against a pipeline's expected inputs:
 
 ```sh
-meandra validate config.yaml --pipeline mymodule:MyPipeline
+meandra validate inputs.yaml --pipeline mymodule:MyPipeline
 ```
 
 ### Behavior
 
-1. The configuration file loads as JSON or YAML.
+1. The inputs file loads as JSON or YAML.
 2. Without `--pipeline`, the command confirms the file parses without error.
 3. With `--pipeline`, the command also builds the workflow graph and compares
-   required inputs against the configuration keys. Missing inputs produce
-   warnings on stderr.
+   required inputs against the keys of the file. Missing inputs produce an
+   error on stderr and the exit status 1.
 
 ---
 
