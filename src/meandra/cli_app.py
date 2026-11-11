@@ -13,9 +13,9 @@ Notes
 -----
 This module is the entry point for the ``meandra`` command-line tool,
 powered by Typer. The options follow the command-line conventions of the
-workspace. Meandra has no settings file and works on no project root: the
+workspace. Meandra has no configuration file and works on no project root: the
 inputs file of a run is a run input, named by ``--inputs``, since the
-conventions reserve ``--config`` for the settings file of a tool.
+conventions reserve ``--config`` for the configuration file of a tool.
 
 The exit status is 0 on success, 1 when a validation or a run finds a
 problem, and 2 on a usage error.

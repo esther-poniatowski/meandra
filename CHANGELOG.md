@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Rename the option `--config`/`-c` of `run` to `--inputs`/`-i`, since the
-  command-line conventions reserve `--config` for the settings file of a
+  command-line conventions reserve `--config` for the configuration file of a
   tool; the former name is retired without an alias.
 - Give `--version` the short form `-v`, retire `-V`, and remove the short form
   `-v` of `--verbose`.

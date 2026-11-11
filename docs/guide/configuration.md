@@ -2,8 +2,8 @@
 
 Meandra accepts pipeline inputs as JSON or YAML files, passed via `--inputs`
 on the CLI or loaded directly in Python. An inputs file is a run input of one
-pipeline, not a settings file of Meandra: the command-line conventions of the
-workspace reserve `--config` for the settings file of a tool, and Meandra has
+pipeline, not a configuration file of Meandra: the command-line conventions of the
+workspace reserve `--config` for the configuration file of a tool, and Meandra has
 none. Parameter overrides merge on top of
 file-based configuration.
 

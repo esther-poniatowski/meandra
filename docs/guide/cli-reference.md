@@ -5,7 +5,7 @@ Meandra exposes four commands through the `meandra` CLI: `run`, `validate`,
 
 The options follow the
 [command-line conventions](https://github.com/esther-poniatowski/keystone/blob/main/docs/internals/cli-conventions.md)
-of the workspace. Meandra has no settings file and works on no project root,
+of the workspace. Meandra has no configuration file and works on no project root,
 so it offers neither `--config` nor `--root`. A path given on the command line
 is relative to the current folder. A command overwrites the file named by
 `--output`, since it derives that file and can regenerate it.
